@@ -1,5 +1,5 @@
 var settings = {
-    groundLevel:40,
+    groundLevel:50,
     width:80,
     height:80,
     depth:80,
@@ -129,6 +129,17 @@ function oob(x,y){
     return false;
 }
 
+function soob(x,y,z){
+    if(x > settings.width-1 || x < 0 || y < 0 || y > settings.height-1 || z < 0 || z > settings.depth-1){
+        return true;
+    }
+    return false;
+}
+
+function dist(ax,ay,az,bx,by,bz){
+    return Math.sqrt(((ax-bx)*(ax-bx))+((ay-by)*(ay-by))+((az-bz)*(az-bz)));
+}
+
 function generateMap(width,height,depth){
     var gen = [];
     for(var x = 0; x < width; x++){
@@ -176,6 +187,46 @@ function generateMap(width,height,depth){
             }
         }
     }
+    var cavex = 0;
+    var cavey = 0;
+    var cavez = 0;
+    var cavewidth = 5;
+    var caveVector = [0,0,0];
+    for(var i = 0; i < 3; i++){
+        caveVector[2] = (Math.random())+1;
+        caveVector[1] = Math.random()-0.5;
+        caveVector[0] = Math.random()-0.5;
+        cavex = Math.round(Math.random()*(settings.width-2))+1;
+        cavey = Math.round(Math.random()*(settings.height-2))+1
+        cavez = Math.round(gen[cavex][cavey]);
+        cavewidth = Math.round((Math.random()*5)+2);
+        while(Math.random() > 0.01){
+            var z = Math.round(cavez);
+            for(var x = Math.round(cavex)-(cavewidth*2);x < Math.round(cavex)+(cavewidth*2); x++){
+                for(var y = Math.round(cavey)-(cavewidth*2);y < Math.round(cavey)+(cavewidth*2); y++){
+                    for(var z = Math.round(cavez)-(cavewidth*2);z < Math.round(cavez)+(cavewidth*2); z++){
+                        if(!soob(x,y,z) && (dist(cavex,cavey,cavez,x,y,z) < cavewidth)){
+                            m[x][y][z].texture = null;
+                        }
+                    }
+                }
+            }
+
+            cavex += caveVector[0];
+            cavey += caveVector[1];
+            cavez += caveVector[2];
+            caveVector[1] += Math.random()-0.5;
+            caveVector[0] += Math.random()-0.5;
+            caveVector[2] += Math.random()-0.5;
+        }
+    }
+
+    for(var x = 0; x < width; x++){
+        for(var y = 0; y < height; y++){
+            m[x][y][settings.depth-1].texture = "basalt";
+        }
+    }
+        
     return m;
 }
 
@@ -185,7 +236,7 @@ function drawAll(){
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             var z = 0;
-            for(z = 0; z < settings.height; z++){
+            for(z = cameraDepth; z < settings.depth; z++){
                 if(map[x][y][z].texture != null){
                     if(map[x][y][z].stopDraw)
                         break;
@@ -230,8 +281,10 @@ function drawAll(){
             }
 
             for(z = z; z > cameraDepth; z--){
-                if(map[x][y][z].texture != null){
-                    map[x][y][z].draw((z-cameraDepth)/20);
+                if(z < settings.depth-1){
+                    if(map[x][y][z].texture != null){
+                        map[x][y][z].draw((z-cameraDepth)/20);
+                    }
                 }
             }
                 
@@ -239,7 +292,16 @@ function drawAll(){
         }
     }
     for(var i = 0; i < astronauts.length; i++){
-        astronauts[i].draw();
+        if(astronauts[i].z >= cameraDepth){
+            var hide = false;
+            for(j = astronauts[i].z; j < cameraDepth; j++){
+                if(map[x][y][j].texture != null && map[x][y][j].stopDraw){
+                    hide = true;
+                }
+            }
+            if(!hide)
+                astronauts[i].draw();
+        }
     }
 
     
@@ -270,7 +332,7 @@ document.addEventListener("wheel", (event) => {
 });
 
 for(var i = 0; i < 100; i++){
-    astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,15));
+    astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
 }
 
 setInterval(drawAll,50);
