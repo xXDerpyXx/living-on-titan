@@ -12,6 +12,54 @@ var settings = {
 var c = document.getElementById("mainCanvas");
 var ctx = c.getContext("2d");
 
+class astronaut{
+    constructor(_x,_y,_z){
+        this.x = _x;
+        this.y = _y;
+        this.z = _z;
+    }
+    
+    draw(){
+        var img = document.getElementById("astronaut");
+        ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+    }
+
+    update(){
+        var nx = 0;
+        var ny = 0;
+        var nz = 0;
+        if(map[this.x][this.y][this.z+1].texture == null){
+            nz++;
+        }else{
+            var r = Math.random();
+            if(r < 0.25){
+                nx = 1;
+            }else if(r < 0.5){
+                ny = 1;
+            }else if(r < 0.75){
+                nx = -1;
+            }else{
+                ny = -1;
+            }
+
+        }
+        if(!oob(this.x+nx,this.y+ny)){
+            if(map[this.x+nx][this.y+ny][this.z].texture == null){
+                this.x += nx;
+                this.y += ny;
+                this.z += nz;
+            }else{
+                if(map[this.x+nx][this.y+ny][this.z-1].texture == null){
+                    nz--;
+                    this.x += nx;
+                    this.y += ny;
+                    this.z += nz;
+                }
+            }
+        }
+    }
+}
+
 class tile{
     constructor(_x,_y,_z){
         this.texture = null;
@@ -109,9 +157,15 @@ function drawAll(){
                 if(map[x][y][z].texture != null){
                     map[x][y][z].draw((z-cameraDepth)/20);
                 }
+                for(var i = 0; i < astronauts.length; i++){
+                    if(x == astronauts[i].x && y == astronauts[i].y && z == astronauts[i].z)
+                        astronauts[i].draw();
+                }
             }
+            
         }
     }
+    
 }
 
 function updateAll(){
@@ -123,10 +177,16 @@ function updateAll(){
             }
         }
     }
+    for(var i = 0; i < astronauts.length; i++){
+        astronauts[i].update();
+    }
     map = newMap;
 }
 
 var map = generateMap(settings.width,settings.height,settings.depth)
+var astronauts = [];
+
+
 
 document.addEventListener("wheel", (event) => {
     console.log(event.deltaY);
@@ -134,4 +194,9 @@ document.addEventListener("wheel", (event) => {
 
 });
 
-setInterval(drawAll,200);
+for(var i = 0; i < 100; i++){
+    astronauts.push(new astronaut(20,20,0));
+}
+
+setInterval(drawAll,50);
+setInterval(updateAll,100)
