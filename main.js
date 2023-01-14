@@ -334,8 +334,8 @@ function drawAll(){
     for(var i = 0; i < astronauts.length; i++){
         if(astronauts[i].z >= cameraDepth){
             var hide = false;
-            for(j = astronauts[i].z; j < cameraDepth; j++){
-                if(map[x][y][j].texture != null && map[x][y][j].stopDraw){
+            for(var j = astronauts[i].z; j >= cameraDepth; j--){
+                if(map[astronauts[i].x][astronauts[i].y][j].texture != null && map[astronauts[i].x][astronauts[i].y][j].stopDraw){
                     hide = true;
                 }
             }
