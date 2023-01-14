@@ -60,6 +60,10 @@ class astronaut{
     }
 }
 
+var waterupdate = function(){
+
+}
+
 class tile{
     constructor(_x,_y,_z){
         this.texture = null;
@@ -67,6 +71,10 @@ class tile{
         this.x = _x;
         this.y = _y;
         this.z = _z;
+    }
+
+    update(){
+        return;
     }
 
     draw(darkness){
@@ -167,8 +175,38 @@ function drawAll(){
             }
 
             if(z <= cameraDepth){
+                xnudge = 0;
+                xmargin = 0;
+                ynudge = 0;
+                ymargin = 0;
+                if(z == cameraDepth){
+                    map[x][y][z].draw();
+                    if(!oob(x+1,y)){
+                        if(map[x+1][y][z].texture == null){
+                            xnudge -= 1;
+                        }
+                    }
+                    if(!oob(x-1,y)){
+                        if(map[x-1][y][z].texture == null){
+                            xnudge -= 1;
+                            xmargin += 1;
+                        }
+                    }
+
+                    if(!oob(x,y+1)){
+                        if(map[x][y+1][z].texture == null){
+                            ynudge -= 1;
+                        }
+                    }
+                    if(!oob(x,y-1)){
+                        if(map[x][y-1][z].texture == null){
+                            ynudge -= 1;
+                            ymargin += 1;
+                        }
+                    }
+                }
                 ctx.fillStyle = "rgb(0,0,0)";
-                ctx.fillRect(x*settings.tileSize,y*settings.tileSize,settings.tileSize,settings.tileSize);
+                ctx.fillRect((x*settings.tileSize)+xmargin,(y*settings.tileSize)+ymargin,settings.tileSize+xnudge,settings.tileSize+ynudge);
                 hidden = true;
             }
 
@@ -188,18 +226,16 @@ function drawAll(){
 }
 
 function updateAll(){
-    newMap = map;
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             for(var z = 0; z < settings.depth; z++){
-                
+                map[x][y][z].update();
             }
         }
     }
     for(var i = 0; i < astronauts.length; i++){
         astronauts[i].update();
     }
-    map = newMap;
 }
 
 var map = generateMap(settings.width,settings.height,settings.depth)
