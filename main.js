@@ -21,11 +21,12 @@ class astronaut{
         this.dy = _y;
         this.dz = _z;
         this.progress = 0;
+        this.speed = ((Math.round(Math.random()*10))+5)*10;
     }
     
     draw(){
         var img = document.getElementById("astronaut");
-        ctx.drawImage(img,(((this.x*(this.progress/100))+(this.dx*(1-(this.progress/100)))))*settings.tileSize,(((this.y*(this.progress/100))+(this.dy*(1-(this.progress/100)))))*settings.tileSize,settings.tileSize,settings.tileSize);
+        ctx.drawImage(img,(((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize,(((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize,settings.tileSize,settings.tileSize);
     }
 
     update(){
@@ -61,14 +62,14 @@ class astronaut{
                     this.dx += nx;
                     this.dy += ny;
                     this.dz += nz;
-                    this.progress = 100;
+                    this.progress = this.speed;
                 }else{
                     if(map[this.x+nx][this.y+ny][this.z-1].texture == null){
                         nz--;
                         this.dx += nx;
                         this.dy += ny;
                         this.dz += nz;
-                        this.progress = 100;
+                        this.progress = this.speed;
                     }
                 }
             }
@@ -269,11 +270,11 @@ document.addEventListener("wheel", (event) => {
 });
 
 for(var i = 0; i < 100; i++){
-    astronauts.push(new astronaut(20,20,15));
+    astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,15));
 }
 
 setInterval(drawAll,50);
 setInterval(updateAll,100)
-for(var i = 0; i < 1000; i++){
+for(var i = 0; i < 500; i++){
     updateAll();
 }
