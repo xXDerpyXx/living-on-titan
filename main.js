@@ -1,9 +1,9 @@
 var settings = {
-    groundLevel:50,
+    groundLevel:120,
     width:80,
     height:80,
-    depth:80,
-    tileSize:4,
+    depth:160,
+    tileSize:8,
     smoothness:3,
     variation:10,
     offset:-1,
@@ -150,12 +150,12 @@ class tile{
                 }
             }
         }
-        if(!hidden){
+        //if(!hidden){
             var img = document.getElementById(this.texture);
             ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
             ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
             ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
-        }
+        //}
         
     }
 }
