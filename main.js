@@ -76,10 +76,23 @@ class tile{
         if(darkness == null){
             darkness = 0;
         }
-        var img = document.getElementById(this.texture);
-        ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
-        ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
-        ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+        var hidden = false;
+        if(this.z > 0){
+            if(map[this.x][this.y][this.z-1].texture != null){
+                if(map[this.x][this.y][this.z-1].stopDraw){
+                    ctx.fillStyle = "rgb(0,0,0)";
+                    ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+                    hidden = true;
+                }
+            }
+        }
+        if(!hidden){
+            var img = document.getElementById(this.texture);
+            ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+            ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
+            ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+        }
+        
     }
 }
 
@@ -151,6 +164,12 @@ function drawAll(){
                     if(map[x][y][z].stopDraw)
                         break;
                 }
+            }
+
+            if(z <= cameraDepth){
+                ctx.fillStyle = "rgb(0,0,0)";
+                ctx.fillRect(x*settings.tileSize,y*settings.tileSize,settings.tileSize,settings.tileSize);
+                hidden = true;
             }
 
             for(z = z; z > cameraDepth; z--){
