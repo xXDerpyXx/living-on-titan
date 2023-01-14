@@ -1,0 +1,15 @@
+{
+  "name": "living-on-titan",
+  "version": "1.0.0",
+  "description": "a game about living on titan",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "nwjs": "^1.4.4"
+  }
+  
+}
