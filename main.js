@@ -17,46 +17,63 @@ class astronaut{
         this.x = _x;
         this.y = _y;
         this.z = _z;
+        this.dx = _x; 
+        this.dy = _y;
+        this.dz = _z;
+        this.progress = 0;
     }
     
     draw(){
         var img = document.getElementById("astronaut");
-        ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+        ctx.drawImage(img,(((this.x*(this.progress/100))+(this.dx*(1-(this.progress/100)))))*settings.tileSize,(((this.y*(this.progress/100))+(this.dy*(1-(this.progress/100)))))*settings.tileSize,settings.tileSize,settings.tileSize);
     }
 
     update(){
-        var nx = 0;
-        var ny = 0;
-        var nz = 0;
-        if(map[this.x][this.y][this.z+1].texture == null){
-            nz++;
-        }else{
-            var r = Math.random();
-            if(r < 0.25){
-                nx = 1;
-            }else if(r < 0.5){
-                ny = 1;
-            }else if(r < 0.75){
-                nx = -1;
-            }else{
-                ny = -1;
+        if(this.progress > 0){
+            this.progress-=10;
+            if(this.progress <= 0){
+                this.x = this.dx;
+                this.y = this.dy;
+                this.z = this.dz;
+                this.progress = 0;
             }
-
-        }
-        if(!oob(this.x+nx,this.y+ny)){
-            if(map[this.x+nx][this.y+ny][this.z].texture == null){
-                this.x += nx;
-                this.y += ny;
-                this.z += nz;
+        }else{
+            var nx = 0;
+            var ny = 0;
+            var nz = 0;
+            if(map[this.x][this.y][this.z+1].texture == null){
+                nz++;
             }else{
-                if(map[this.x+nx][this.y+ny][this.z-1].texture == null){
-                    nz--;
-                    this.x += nx;
-                    this.y += ny;
-                    this.z += nz;
+                var r = Math.random();
+                if(r < 0.25){
+                    nx = 1;
+                }else if(r < 0.5){
+                    ny = 1;
+                }else if(r < 0.75){
+                    nx = -1;
+                }else{
+                    ny = -1;
+                }
+
+            }
+            if(!oob(this.x+nx,this.y+ny)){
+                if(map[this.x+nx][this.y+ny][this.z].texture == null){
+                    this.dx += nx;
+                    this.dy += ny;
+                    this.dz += nz;
+                    this.progress = 100;
+                }else{
+                    if(map[this.x+nx][this.y+ny][this.z-1].texture == null){
+                        nz--;
+                        this.dx += nx;
+                        this.dy += ny;
+                        this.dz += nz;
+                        this.progress = 100;
+                    }
                 }
             }
         }
+        
     }
 }
 
@@ -179,29 +196,30 @@ function drawAll(){
                 xmargin = 0;
                 ynudge = 0;
                 ymargin = 0;
+                wallThickness = 2;
                 if(z == cameraDepth){
                     map[x][y][z].draw();
                     if(!oob(x+1,y)){
                         if(map[x+1][y][z].texture == null){
-                            xnudge -= 1;
+                            xnudge -= wallThickness;
                         }
                     }
                     if(!oob(x-1,y)){
                         if(map[x-1][y][z].texture == null){
-                            xnudge -= 1;
-                            xmargin += 1;
+                            xnudge -= wallThickness;
+                            xmargin += wallThickness;
                         }
                     }
 
                     if(!oob(x,y+1)){
                         if(map[x][y+1][z].texture == null){
-                            ynudge -= 1;
+                            ynudge -= wallThickness;
                         }
                     }
                     if(!oob(x,y-1)){
                         if(map[x][y-1][z].texture == null){
-                            ynudge -= 1;
-                            ymargin += 1;
+                            ynudge -= wallThickness;
+                            ymargin += wallThickness;
                         }
                     }
                 }
@@ -214,14 +232,15 @@ function drawAll(){
                 if(map[x][y][z].texture != null){
                     map[x][y][z].draw((z-cameraDepth)/20);
                 }
-                for(var i = 0; i < astronauts.length; i++){
-                    if(x == astronauts[i].x && y == astronauts[i].y && z == astronauts[i].z)
-                        astronauts[i].draw();
-                }
             }
+                
             
         }
     }
+    for(var i = 0; i < astronauts.length; i++){
+        astronauts[i].draw();
+    }
+
     
 }
 
@@ -250,8 +269,11 @@ document.addEventListener("wheel", (event) => {
 });
 
 for(var i = 0; i < 100; i++){
-    astronauts.push(new astronaut(20,20,0));
+    astronauts.push(new astronaut(20,20,15));
 }
 
 setInterval(drawAll,50);
 setInterval(updateAll,100)
+for(var i = 0; i < 1000; i++){
+    updateAll();
+}
