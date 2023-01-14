@@ -3,10 +3,11 @@ var settings = {
     width:80,
     height:80,
     depth:80,
-    tileSize:8,
+    tileSize:4,
     smoothness:3,
     variation:10,
-    offset:-1
+    offset:-1,
+    caveCount:10
 }
 
 var c = document.getElementById("mainCanvas");
@@ -79,7 +80,44 @@ class astronaut{
 }
 
 var waterupdate = function(){
-
+    if(map[this.x][this.y][this.z+1].texture == null){
+        var temp = map[this.x][this.y][this.z+1]
+        map[this.x][this.y][this.z+1] = map[this.x][this.y][this.z]
+        map[this.x][this.y][this.z] = temp;
+        return;
+    }
+    if(!oob(this.x+1,this.y)){
+        if(map[this.x+1][this.y][this.z].texture == null){
+            var temp = map[this.x+1][this.y][this.z]
+            map[this.x+1][this.y][this.z] = map[this.x][this.y][this.z]
+            map[this.x][this.y][this.z] = temp;
+            return;
+        }
+    }
+    if(!oob(this.x-1,this.y)){
+        if(map[this.x-1][this.y][this.z].texture == null){
+            var temp = map[this.x-1][this.y][this.z]
+            map[this.x-1][this.y][this.z] = map[this.x][this.y][this.z]
+            map[this.x][this.y][this.z] = temp;
+            return;
+        }
+    }
+    if(!oob(this.x,this.y+1)){
+        if(map[this.x][this.y+1][this.z].texture == null){
+            var temp = map[this.x][this.y+1][this.z]
+            map[this.x][this.y+1][this.z] = map[this.x][this.y][this.z]
+            map[this.x][this.y][this.z] = temp;
+            return;
+        }
+    }
+    if(!oob(this.x,this.y-1)){
+        if(map[this.x][this.y-1][this.z].texture == null){
+            var temp = map[this.x][this.y-1][this.z]
+            map[this.x][this.y-1][this.z] = map[this.x][this.y][this.z]
+            map[this.x][this.y][this.z] = temp;
+            return;
+        }
+    }
 }
 
 class tile{
@@ -179,6 +217,7 @@ function generateMap(width,height,depth){
                 }else if(z > settings.groundLevel){
                     m[x][y][z].texture = "liquid-methane";
                     m[x][y][z].stopDraw = false;
+                    m[x][y][z].update = waterupdate;
                 }
                 
                 if(z > depth-2){
@@ -192,14 +231,14 @@ function generateMap(width,height,depth){
     var cavez = 0;
     var cavewidth = 5;
     var caveVector = [0,0,0];
-    for(var i = 0; i < 3; i++){
+    for(var i = 0; i < settings.caveCount; i++){
         caveVector[2] = (Math.random())+1;
         caveVector[1] = Math.random()-0.5;
         caveVector[0] = Math.random()-0.5;
         cavex = Math.round(Math.random()*(settings.width-2))+1;
         cavey = Math.round(Math.random()*(settings.height-2))+1
         cavez = Math.round(gen[cavex][cavey]);
-        cavewidth = Math.round((Math.random()*5)+2);
+        cavewidth = Math.round((Math.random()*5)+1);
         while(Math.random() > 0.01){
             var z = Math.round(cavez);
             for(var x = Math.round(cavex)-(cavewidth*2);x < Math.round(cavex)+(cavewidth*2); x++){
@@ -224,6 +263,7 @@ function generateMap(width,height,depth){
     for(var x = 0; x < width; x++){
         for(var y = 0; y < height; y++){
             m[x][y][settings.depth-1].texture = "basalt";
+            m[x][y][settings.depth-2].texture = "basalt";
         }
     }
         
