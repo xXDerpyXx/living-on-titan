@@ -4,7 +4,7 @@ var settings = {
     height:80,
     depth:160,
     tileSize:8,
-    smoothness:5,
+    smoothness:6,
     variation:10,
     offset:-1,
     caveCount:10,
@@ -27,9 +27,16 @@ class astronaut{
         this.speed = ((Math.round(Math.random()*10))+5)*10;
     }
     
-    draw(){
+    draw(darkness){
         var img = document.getElementById("astronaut");
-        ctx.drawImage(img,(((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize,(((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize,settings.tileSize,settings.tileSize);
+
+        
+
+        ctx.drawImage(img,((((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize)+camerax,((((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
+        for(var i = 0; i < darkness; i++){
+            img = document.getElementById("dark-astronaut");
+            ctx.drawImage(img,((((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize)+camerax,((((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
+        }
     }
 
     update(){
@@ -178,9 +185,9 @@ class tile{
         }
         //if(!hidden){
             var img = document.getElementById(this.texture);
-            ctx.drawImage(img,this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+            ctx.drawImage(img,(this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
             ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
-            ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
+            ctx.fillRect((this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
         //}
         
     }
@@ -313,7 +320,7 @@ function generateMap(width,height,depth){
     for(k = 0; k < settings.nitrogenDeposits; k++){
         orex = Math.round(Math.random()*(settings.width-2))+1;
         orey = Math.round(Math.random()*(settings.height-2))+1
-        orez = Math.round(gen[orex][orey]+(Math.random()*settings.groundLevel));
+        orez = Math.round(gen[orex][orey]+(Math.random()*settings.groundLevel)+5);
         oresize = Math.round((Math.random()*10)+1);
         for(var x = Math.round(orex)-(oresize*2);x < Math.round(orex)+(oresize*2); x++){
             for(var y = Math.round(orey)-(oresize*2);y < Math.round(orey)+(oresize*2); y++){
@@ -339,7 +346,10 @@ function generateMap(width,height,depth){
     return m;
 }
 
-var cameraDepth = settings.groundLevel-5
+var cameraDepth = settings.groundLevel-5;
+var camerax = 0;
+var cameray = 0;
+
 
 function drawAll(){
     for(var x = 0; x < settings.width; x++){
@@ -385,7 +395,7 @@ function drawAll(){
                     }
                 }
                 ctx.fillStyle = "rgb(0,0,0)";
-                ctx.fillRect((x*settings.tileSize)+xmargin,(y*settings.tileSize)+ymargin,settings.tileSize+xnudge,settings.tileSize+ynudge);
+                ctx.fillRect(((x*settings.tileSize)+xmargin)+camerax,((y*settings.tileSize)+ymargin)+cameray,settings.tileSize+xnudge,settings.tileSize+ynudge);
                 hidden = true;
             }
 
@@ -409,7 +419,8 @@ function drawAll(){
                 }
             }
             if(!hide)
-                astronauts[i].draw();
+                astronauts[i].draw((astronauts[i].z-cameraDepth));
+            console.log((astronauts[i].z-cameraDepth))
         }
     }
 
@@ -417,6 +428,8 @@ function drawAll(){
 }
 
 function updateAll(){
+    camerax += cameraMovement[0];
+    cameray += cameraMovement[1];
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             for(var z = 0; z < settings.depth; z++){
@@ -436,7 +449,80 @@ var astronauts = [];
 
 document.addEventListener("wheel", (event) => {
     console.log(event.deltaY);
-    cameraDepth += event.deltaY/100
+    if(shiftDown){
+        settings.tileSize += event.deltaY/100
+    }else{
+        cameraDepth += event.deltaY/100
+    }
+    
+
+});
+
+var cameraMovement = [0,0]
+var shiftDown = false;
+
+document.addEventListener("keydown", (event) => {
+    console.log(event.key);
+
+    if(event.key == "Shift"){
+        shiftDown = true;
+        if(Math.abs(cameraMovement[0]) == 5){
+            cameraMovement[0] = cameraMovement[0]*2;
+        }
+        if(Math.abs(cameraMovement[1]) == 5){
+            cameraMovement[1] = cameraMovement[1]*2;
+        }
+    }
+
+    if(event.key == "a")
+        cameraMovement[0] = 5;
+    if(event.key == "d")
+        cameraMovement[0] = -5;
+    if(event.key == "w")
+        cameraMovement[1] = 5;
+    if(event.key == "s")
+        cameraMovement[1] = -5;
+
+    if(event.key == "A")
+        cameraMovement[0] = 10;
+    if(event.key == "D")
+        cameraMovement[0] = -10;
+    if(event.key == "W")
+        cameraMovement[1] = 10;
+    if(event.key == "S")
+        cameraMovement[1] = -10;
+});
+
+document.addEventListener("keyup", (event) => {
+    console.log(event.key);
+
+    if(event.key == "Shift"){
+        shiftDown = false;
+        if(Math.abs(cameraMovement[0]) == 10){
+            cameraMovement[0] = cameraMovement[0]/2;
+        }
+        if(Math.abs(cameraMovement[1]) == 10){
+            cameraMovement[1] = cameraMovement[1]/2;
+        }
+    }
+
+    if(event.key == "a")
+        cameraMovement[0] = 0;
+    if(event.key == "d")
+        cameraMovement[0] = 0;
+    if(event.key == "w")
+        cameraMovement[1] = 0;
+    if(event.key == "s")
+        cameraMovement[1] = 0;
+    
+    if(event.key == "A")
+        cameraMovement[0] = 0;
+    if(event.key == "D")
+        cameraMovement[0] = 0;
+    if(event.key == "W")
+        cameraMovement[1] = 0;
+    if(event.key == "S")
+        cameraMovement[1] = 0;
 
 });
 
