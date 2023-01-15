@@ -24,7 +24,7 @@ class astronaut{
         this.dy = _y;
         this.dz = _z;
         this.progress = 0;
-        this.speed = ((Math.round(Math.random()*10))+5)*10;
+        this.speed = 2;//((Math.round(Math.random()*10))+5)*10;
     }
     
     draw(darkness){
@@ -420,7 +420,6 @@ function drawAll(){
             }
             if(!hide)
                 astronauts[i].draw((astronauts[i].z-cameraDepth));
-            console.log((astronauts[i].z-cameraDepth))
         }
     }
 
@@ -430,6 +429,14 @@ function drawAll(){
 function updateAll(){
     camerax += cameraMovement[0];
     cameray += cameraMovement[1];
+    if(camerax > 0)
+        camerax = 0;
+    if(cameray > 0)
+        cameray = 0;
+    if(camerax < c.width+(-1*(settings.width*settings.tileSize)))
+        camerax = c.width+(-1*(settings.width*settings.tileSize));
+    if(cameray < c.height+(-1*(settings.height*settings.tileSize)))
+        cameray = c.height+(-1*(settings.height*settings.tileSize));
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             for(var z = 0; z < settings.depth; z++){
