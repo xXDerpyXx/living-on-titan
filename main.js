@@ -3,7 +3,7 @@ var settings = {
     width:80,
     height:80,
     depth:160,
-    tileSize:8,
+    tileSize:16,
     smoothness:6,
     variation:10,
     offset:0,
@@ -361,6 +361,9 @@ var cameray = 0;
 
 
 function drawAll(){
+    c.width = window.innerWidth;
+    c.height = window.innerHeight;
+
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             var z = 0;
@@ -381,24 +384,24 @@ function drawAll(){
                 if(z == cameraDepth){
                     map[x][y][z].draw();
                     if(!oob(x+1,y)){
-                        if(map[x+1][y][z].type == null){
+                        if(map[x+1][y][z].type == null || !tileTypes[map[x+1][y][z].type].stopDraw){
                             xnudge -= wallThickness;
                         }
                     }
                     if(!oob(x-1,y)){
-                        if(map[x-1][y][z].type == null){
+                        if(map[x-1][y][z].type == null || !tileTypes[map[x-1][y][z].type].stopDraw){
                             xnudge -= wallThickness;
                             xmargin += wallThickness;
                         }
                     }
 
                     if(!oob(x,y+1)){
-                        if(map[x][y+1][z].type == null){
+                        if(map[x][y+1][z].type == null || !tileTypes[map[x][y+1][z].type].stopDraw){
                             ynudge -= wallThickness;
                         }
                     }
                     if(!oob(x,y-1)){
-                        if(map[x][y-1][z].type == null){
+                        if(map[x][y-1][z].type == null || !tileTypes[map[x][y-1][z].type].stopDraw){
                             ynudge -= wallThickness;
                             ymargin += wallThickness;
                         }
