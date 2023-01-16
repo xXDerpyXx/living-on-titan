@@ -468,6 +468,13 @@ var astronauts = [];
 
 
 
+if(settings.tileSize*settings.width < c.width){
+    settings.tileSize = Math.ceil(c.width/settings.width)
+}
+if(settings.tileSize*settings.height < c.height){
+    settings.tileSize = Math.ceil(c.height/settings.height)
+}
+
 document.addEventListener("wheel", (event) => {
     console.log(event.deltaY);
     if(shiftDown){
