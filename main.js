@@ -6,7 +6,7 @@ var settings = {
     tileSize:8,
     smoothness:6,
     variation:10,
-    offset:-1,
+    offset:0,
     caveCount:10,
     meteors:3,
     nitrogenDeposits:10
@@ -14,6 +14,78 @@ var settings = {
 
 var c = document.getElementById("mainCanvas");
 var ctx = c.getContext("2d");
+
+var waterupdate = function(ref){
+    var tempx = ref.x;
+    var tempy = ref.y;
+    var tempz = ref.z;
+    if(map[tempx][tempy][tempz+1].type == null){
+        var temp = map[tempx][tempy][tempz+1].type;
+        map[tempx][tempy][tempz+1].type = map[tempx][tempy][tempz].type;
+        map[tempx][tempy][tempz].type = temp;
+    }else{
+        var r = Math.random();
+        if(!oob(tempx+1,tempy) && r < 0.25){
+            if(map[tempx+1][tempy][tempz].type == null){
+                var temp = map[tempx+1][tempy][tempz].type
+                map[tempx+1][tempy][tempz].type = map[tempx][tempy][tempz].type
+                map[tempx][tempy][tempz].type = temp;
+            }
+        }
+        else if(!oob(tempx-1,tempy) && r < 0.5){
+            if(map[tempx-1][tempy][tempz].type == null){
+                var temp = map[tempx-1][tempy][tempz].type
+                map[tempx-1][tempy][tempz].type = map[tempx][tempy][tempz].type
+                map[tempx][tempy][tempz].type = temp;
+            }
+        }
+        else if(!oob(tempx,tempy+1) && r < 0.75){
+            if(map[tempx][tempy+1][tempz].type == null){
+                var temp = map[tempx][tempy+1][tempz].type
+                map[tempx][tempy+1][tempz].type = map[tempx][tempy][tempz].type
+                map[tempx][tempy][tempz].type = temp;
+            }
+        }
+        else if(!oob(tempx,tempy-1)){
+            if(map[tempx][tempy-1][tempz].type == null){
+                var temp = map[tempx][tempy-1][tempz].type
+                map[tempx][tempy-1][tempz].type = map[tempx][tempy][tempz].type
+                map[tempx][tempy][tempz].type = temp;
+                return;
+            }
+        }
+    }
+    
+}
+
+var tileTypes = {
+    organicSand:{
+        stopDraw:true,
+        texture:"organic-sand",
+        update:function(){return;}
+    },
+    basalt:{
+        stopDraw:true,
+        texture:"basalt",
+        update:function(){return;}
+    },
+    meteorite:{
+        stopDraw:true,
+        texture:"meteorite",
+        update:function(){return;}
+    },
+    solidNitrogen:{
+        stopDraw:false,
+        texture:"solid-nitrogen",
+        update:function(){return;}
+    },
+    liquidMethane:{
+        stopDraw:false,
+        texture:"liquid-methane",
+        update:waterupdate
+    },
+
+}
 
 class astronaut{
     constructor(_x,_y,_z){
@@ -24,7 +96,7 @@ class astronaut{
         this.dy = _y;
         this.dz = _z;
         this.progress = 0;
-        this.speed = 2;//((Math.round(Math.random()*10))+5)*10;
+        this.speed = 50;//((Math.round(Math.random()*10))+5)*10;
     }
     
     draw(darkness){
@@ -52,8 +124,10 @@ class astronaut{
             var nx = 0;
             var ny = 0;
             var nz = 0;
-            if(map[this.x][this.y][this.z+1].texture == null){
+            var fall = false;
+            if(map[this.x][this.y][this.z+1].type == null){
                 nz++;
+                fall = true;
             }else{
                 var r = Math.random();
                 if(r < 0.25){
@@ -68,18 +142,24 @@ class astronaut{
 
             }
             if(!oob(this.x+nx,this.y+ny)){
-                if(map[this.x+nx][this.y+ny][this.z].texture == null){
+                if(map[this.x+nx][this.y+ny][this.z].type == null){
                     this.dx += nx;
                     this.dy += ny;
                     this.dz += nz;
                     this.progress = this.speed;
+                    if(fall){
+                        this.progress = 10;
+                    }
                 }else{
-                    if(map[this.x+nx][this.y+ny][this.z-1].texture == null){
+                    if(map[this.x+nx][this.y+ny][this.z-1].type == null){
                         nz--;
                         this.dx += nx;
                         this.dy += ny;
                         this.dz += nz;
                         this.progress = this.speed;
+                        if(fall){
+                            this.progress = 10;
+                        }
                     }
                 }
             }
@@ -88,86 +168,18 @@ class astronaut{
     }
 }
 
-var waterupdate = function(){
-    return;
-    var tempx = this.x;
-    var tempy = this.y;
-    var tempz = this.z;
-    if(map[this.x][this.y][this.z+1].texture == null){
-        var temp = map[this.x][this.y][this.z+1]
-        map[this.x][this.y][this.z+1] = map[this.x][this.y][this.z]
-        map[this.x][this.y][this.z] = temp;
-        map[tempx][tempy][tempz+1].z -= 1;
-        map[tempx][tempy][tempz].z += 1;
-        map[tempx][tempy][tempz].update = function(){return;};
-        map[tempx][tempy][tempz+1].update = waterupdate;
-        return;
-    }
-    if(!oob(this.x+1,this.y)){
-        if(map[this.x+1][this.y][this.z].texture == null){
-            var temp = map[this.x+1][this.y][this.z]
-            map[this.x+1][this.y][this.z] = map[this.x][this.y][this.z]
-            map[tempx][tempy][tempz] = temp;
-            map[tempx+1][tempy][tempz].x -= 1;
-            map[tempx][tempy][tempz].x += 1;
-            map[tempx][tempy][tempz].update = function(){return;};
-            map[tempx+1][tempy][tempz].update = waterupdate;
-            return;
-        }
-    }
-    if(!oob(this.x-1,this.y)){
-        if(map[this.x-1][this.y][this.z].texture == null){
-            var temp = map[this.x-1][this.y][this.z]
-            map[this.x-1][this.y][this.z] = map[this.x][this.y][this.z]
-            map[this.x][this.y][this.z] = temp;
-            map[tempx-1][tempy][tempz].x += 1;
-            map[tempx][tempy][tempz].x -= 1;
-            map[tempx][tempy][tempz].update = function(){return;};
-            map[tempx-1][tempy][tempz].update = waterupdate;
-            return;
-        }
-    }
-    if(!oob(this.x,this.y+1)){
-        if(map[this.x][this.y+1][this.z].texture == null){
-            var temp = map[this.x][this.y+1][this.z]
-            map[this.x][this.y+1][this.z] = map[this.x][this.y][this.z]
-            map[this.x][this.y][this.z] = temp;
-            map[tempx][tempy+1][tempz].y -= 1;
-            map[tempx][tempy][tempz].y += 1;
-            map[tempx][tempy][tempz].update = function(){return;};
-            map[tempx][tempy+1][tempz].update = waterupdate;
-            return;
-        }
-    }
-    if(!oob(this.x,this.y-1)){
-        if(map[this.x][this.y-1][this.z].texture == null){
-            var temp = map[this.x][this.y-1][this.z]
-            map[this.x][this.y-1][this.z] = map[this.x][this.y][this.z]
-            map[this.x][this.y][this.z] = temp;
-            map[tempx][tempy-1][tempz].y += 1;
-            map[tempx][tempy][tempz].y -= 1;
-            map[tempx][tempy][tempz].update = function(){return;};
-            map[tempx][tempy-1][tempz].update = waterupdate;
-            return;
-        }
-    }
-}
+
 
 class tile{
     constructor(_x,_y,_z){
-        this.texture = null;
-        this.stopDraw = true;
         this.x = _x;
         this.y = _y;
         this.z = _z;
-    }
-
-    update(){
-        return;
+        this.type = null;
     }
 
     draw(darkness){
-        if(this.texture == null){
+        if(this.type == null){
             return;
         }
         if(darkness == null){
@@ -175,8 +187,8 @@ class tile{
         }
         var hidden = false;
         if(this.z > 0){
-            if(map[this.x][this.y][this.z-1].texture != null){
-                if(map[this.x][this.y][this.z-1].stopDraw){
+            if(map[this.x][this.y][this.z-1].type != null){
+                if(tileTypes[map[this.x][this.y][this.z-1].type].stopDraw){
                     ctx.fillStyle = "rgb(0,0,0)";
                     ctx.fillRect(this.x*settings.tileSize,this.y*settings.tileSize,settings.tileSize,settings.tileSize);
                     hidden = true;
@@ -184,7 +196,7 @@ class tile{
             }
         }
         //if(!hidden){
-            var img = document.getElementById(this.texture);
+            var img = document.getElementById(tileTypes[this.type].texture);
             ctx.drawImage(img,(this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
             ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
             ctx.fillRect((this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
@@ -246,15 +258,13 @@ function generateMap(width,height,depth){
             for(var z = 0; z < depth; z++){
                 m[x][y][z] = new tile(x,y,z);
                 if(z > gen[x][y]){
-                    m[x][y][z].texture = "organic-sand";
+                    m[x][y][z].type = "organicSand";
                 }else if(z > settings.groundLevel){
-                    m[x][y][z].texture = "liquid-methane";
-                    m[x][y][z].stopDraw = false;
-                    m[x][y][z].update = waterupdate;
+                    m[x][y][z].type = "liquidMethane";
                 }
                 
                 if(z > depth-2){
-                    m[x][y][z].texture = "basalt";
+                    m[x][y][z].type = "basalt";
                 }
             }
         }
@@ -281,7 +291,7 @@ function generateMap(width,height,depth){
                 for(var y = Math.round(cavey)-(cavewidth*2);y < Math.round(cavey)+(cavewidth*2); y++){
                     for(var z = Math.round(cavez)-(cavewidth*2);z < Math.round(cavez)+(cavewidth*2); z++){
                         if(!soob(x,y,z) && (dist(cavex,cavey,cavez,x,y,z) < cavewidth)){
-                            m[x][y][z].texture = null;
+                            m[x][y][z].type = null;
                         }
                     }
                 }
@@ -307,9 +317,9 @@ function generateMap(width,height,depth){
                 for(var z = Math.round(orez)-(oresize*2);z < Math.round(orez)+(oresize*2); z++){
                     if(!soob(x,y,z) && (dist(orex,orey,orez,x,y,z) < oresize)){
                         if((dist(orex,orey,orez+(oresize*0.75),x,y,z) < oresize*0.5)){
-                            m[x][y][z].texture = "meteorite";
+                            m[x][y][z].type = "meteorite";
                         }else{
-                            m[x][y][z].texture = null;
+                            m[x][y][z].type = null;
                         }
                     }
                 }
@@ -326,9 +336,8 @@ function generateMap(width,height,depth){
             for(var y = Math.round(orey)-(oresize*2);y < Math.round(orey)+(oresize*2); y++){
                 for(var z = Math.round(orez)-(oresize*2);z < Math.round(orez)+(oresize*2); z++){
                     if(!soob(x,y,z) && (dist(orex,orey,orez,x,y,z) < oresize)){
-                        if((dist(orex,orey,orez,x,y,z) < oresize) && m[x][y][z].texture != null){
-                            m[x][y][z].texture = "solid-nitrogen";
-                            m[x][y][z].stopDraw = true;
+                        if((dist(orex,orey,orez,x,y,z) < oresize) && m[x][y][z].type != null){
+                            m[x][y][z].type = "solidNitrogen";
                         }
                     }
                 }
@@ -338,8 +347,8 @@ function generateMap(width,height,depth){
 
     for(var x = 0; x < width; x++){
         for(var y = 0; y < height; y++){
-            m[x][y][settings.depth-1].texture = "basalt";
-            m[x][y][settings.depth-2].texture = "basalt";
+            m[x][y][settings.depth-1].type = "basalt";
+            m[x][y][settings.depth-2].type = "basalt";
         }
     }
         
@@ -356,9 +365,10 @@ function drawAll(){
         for(var y = 0; y < settings.height; y++){
             var z = 0;
             for(z = cameraDepth; z < settings.depth; z++){
-                if(map[x][y][z].texture != null){
-                    if(map[x][y][z].stopDraw)
+                if(map[x][y][z].type != null){
+                    if(tileTypes[map[x][y][z].type].stopDraw)
                         break;
+
                 }
             }
 
@@ -371,24 +381,24 @@ function drawAll(){
                 if(z == cameraDepth){
                     map[x][y][z].draw();
                     if(!oob(x+1,y)){
-                        if(map[x+1][y][z].texture == null){
+                        if(map[x+1][y][z].type == null){
                             xnudge -= wallThickness;
                         }
                     }
                     if(!oob(x-1,y)){
-                        if(map[x-1][y][z].texture == null){
+                        if(map[x-1][y][z].type == null){
                             xnudge -= wallThickness;
                             xmargin += wallThickness;
                         }
                     }
 
                     if(!oob(x,y+1)){
-                        if(map[x][y+1][z].texture == null){
+                        if(map[x][y+1][z].type == null){
                             ynudge -= wallThickness;
                         }
                     }
                     if(!oob(x,y-1)){
-                        if(map[x][y-1][z].texture == null){
+                        if(map[x][y-1][z].type == null){
                             ynudge -= wallThickness;
                             ymargin += wallThickness;
                         }
@@ -401,7 +411,7 @@ function drawAll(){
 
             for(z = z; z > cameraDepth; z--){
                 if(z < settings.depth-1){
-                    if(map[x][y][z].texture != null){
+                    if(map[x][y][z].type != null){
                         map[x][y][z].draw((z-cameraDepth)/20);
                     }
                 }
@@ -414,7 +424,7 @@ function drawAll(){
         if(astronauts[i].z >= cameraDepth){
             var hide = false;
             for(var j = astronauts[i].z; j >= cameraDepth; j--){
-                if(map[astronauts[i].x][astronauts[i].y][j].texture != null && map[astronauts[i].x][astronauts[i].y][j].stopDraw){
+                if(map[astronauts[i].x][astronauts[i].y][j].type != null && tileTypes[map[astronauts[i].x][astronauts[i].y][j].type].stopDraw){
                     hide = true;
                 }
             }
@@ -440,7 +450,8 @@ function updateAll(){
     for(var x = 0; x < settings.width; x++){
         for(var y = 0; y < settings.height; y++){
             for(var z = 0; z < settings.depth; z++){
-                map[x][y][z].update();
+                if(map[x][y][z].type != null)
+                    tileTypes[map[x][y][z].type].update(map[x][y][z]);
             }
         }
     }
@@ -458,6 +469,14 @@ document.addEventListener("wheel", (event) => {
     console.log(event.deltaY);
     if(shiftDown){
         settings.tileSize += event.deltaY/100
+        if(settings.tileSize*settings.width < c.width){
+            settings.tileSize = Math.ceil(c.width/settings.width)
+        }
+        if(settings.tileSize*settings.height < c.height){
+            settings.tileSize = Math.ceil(c.height/settings.height)
+        }
+
+
     }else{
         cameraDepth += event.deltaY/100
     }
@@ -471,37 +490,38 @@ document.addEventListener("wheel", (event) => {
 
 var cameraMovement = [0,0]
 var shiftDown = false;
+var cameraSpeed = 10;
 
 document.addEventListener("keydown", (event) => {
     console.log(event.key);
 
     if(event.key == "Shift"){
         shiftDown = true;
-        if(Math.abs(cameraMovement[0]) == 5){
+        if(Math.abs(cameraMovement[0]) == cameraSpeed){
             cameraMovement[0] = cameraMovement[0]*2;
         }
-        if(Math.abs(cameraMovement[1]) == 5){
+        if(Math.abs(cameraMovement[1]) == cameraSpeed){
             cameraMovement[1] = cameraMovement[1]*2;
         }
     }
 
     if(event.key == "a")
-        cameraMovement[0] = 5;
+        cameraMovement[0] = cameraSpeed;
     if(event.key == "d")
-        cameraMovement[0] = -5;
+        cameraMovement[0] = -cameraSpeed;
     if(event.key == "w")
-        cameraMovement[1] = 5;
+        cameraMovement[1] = cameraSpeed;
     if(event.key == "s")
-        cameraMovement[1] = -5;
+        cameraMovement[1] = -cameraSpeed;
 
     if(event.key == "A")
-        cameraMovement[0] = 10;
+        cameraMovement[0] = cameraSpeed*2;
     if(event.key == "D")
-        cameraMovement[0] = -10;
+        cameraMovement[0] = -2*cameraSpeed;
     if(event.key == "W")
-        cameraMovement[1] = 10;
+        cameraMovement[1] = cameraSpeed*2;
     if(event.key == "S")
-        cameraMovement[1] = -10;
+        cameraMovement[1] = -2*cameraSpeed;
 });
 
 document.addEventListener("keyup", (event) => {
@@ -509,10 +529,10 @@ document.addEventListener("keyup", (event) => {
 
     if(event.key == "Shift"){
         shiftDown = false;
-        if(Math.abs(cameraMovement[0]) == 10){
+        if(Math.abs(cameraMovement[0]) == cameraSpeed*2){
             cameraMovement[0] = cameraMovement[0]/2;
         }
-        if(Math.abs(cameraMovement[1]) == 10){
+        if(Math.abs(cameraMovement[1]) == cameraSpeed*2){
             cameraMovement[1] = cameraMovement[1]/2;
         }
     }
