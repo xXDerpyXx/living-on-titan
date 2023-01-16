@@ -461,8 +461,12 @@ document.addEventListener("wheel", (event) => {
     }else{
         cameraDepth += event.deltaY/100
     }
-    
-
+    if(cameraDepth < 0){
+        cameraDepth = 0;
+    }
+    if(cameraDepth > settings.depth-1){
+        cameraDepth = settings.depth-1;
+    }
 });
 
 var cameraMovement = [0,0]
