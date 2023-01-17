@@ -87,6 +87,90 @@ var tileTypes = {
 
 }
 
+var idtrack = 0;
+
+function makePath(ax,ay,az,bx,by,bz){
+    var active = [];
+    var inactive = [];
+    active.push([ax,ay,az,[]]);
+    tempActive = []
+    while(true){
+        for(var i = active.length-1; i > 1;i--){
+            var temp = active.pop();
+            if(temp[0] == bx && temp[1] == by && temp[2] == bz){
+                return temp[3]
+            }
+            
+            if(map[temp[0]][temp[1]][temp[2]+1].type == null){
+                temp[3].push([0,0,1]);
+                tempActive.push([temp[0],temp[1],temp[2]+1,temp[3]]);
+            }else{
+                if(!oob(temp[0]+1,temp[1])){
+                    if(map[temp[0]+1][temp[1]][temp[2]].type == null){
+                        temp[3].push([1,0,0]);
+                        tempActive.push([temp[0]+1,temp[1],temp[2],temp[3]]);
+                        temp[3].pop();
+                    }else{
+                        if(map[temp[0]+1][temp[1]][temp[2]-1].type == null){
+                            temp[3].push([1,0,-1]);
+                            tempActive.push([temp[0]+1,temp[1],temp[2]-1,temp[3]]);
+                            temp[3].pop();
+                        }
+                    }
+                }
+
+                if(!oob(temp[0]-1,temp[1])){
+                    if(map[temp[0]-1][temp[1]][temp[2]].type == null){
+                        temp[3].push([-1,0,0]);
+                        tempActive.push([temp[0]-1,temp[1],temp[2],temp[3]]);
+                        temp[3].pop();
+                    }else{
+                        if(map[temp[0]-1][temp[1]][temp[2]-1].type == null){
+                            temp[3].push([-1,0,-1]);
+                            tempActive.push([temp[0]-1,temp[1],temp[2]-1,temp[3]]);
+                            temp[3].pop();
+                        }
+                    }
+                }
+
+                if(!oob(temp[0],temp[1]+1)){
+                    if(map[temp[0]][temp[1]+1][temp[2]].type == null){
+                        temp[3].push([0,1,0]);
+                        tempActive.push([temp[0],temp[1]+1,temp[2],temp[3]]);
+                        temp[3].pop();
+                    }else{
+                        if(map[temp[0]][temp[1]+1][temp[2]-1].type == null){
+                            temp[3].push([0,1,-1]);
+                            tempActive.push([temp[0],temp[1]+1,temp[2]-1,temp[3]]);
+                            temp[3].pop();
+                        }
+                    }
+                }
+
+                if(!oob(temp[0],temp[1]-1)){
+                    if(map[temp[0]][temp[1]-1][temp[2]].type == null){
+                        temp[3].push([0,1,0]);
+                        tempActive.push([temp[0],temp[1]-1,temp[2],temp[3]]);
+                        temp[3].pop();
+                    }else{
+                        if(map[temp[0]][temp[1]-1][temp[2]-1].type == null){
+                            temp[3].push([0,-1,-1]);
+                            tempActive.push([temp[0],temp[1]-1,temp[2]-1,temp[3]]);
+                            temp[3].pop();
+                        }
+                    }
+                }
+            }
+            
+            inactive.push(temp);
+        }
+        for(var i = 0; i < tempActive.length; i++){
+            active.push(tempActive.pop());
+        }
+    }
+
+}
+
 class astronaut{
     constructor(_x,_y,_z){
         this.x = _x;
@@ -97,6 +181,11 @@ class astronaut{
         this.dz = _z;
         this.progress = 0;
         this.speed = 50;//((Math.round(Math.random()*10))+5)*10;
+        this.path = [];
+        this.id = idtrack;
+        idtrack++;
+        this.hand = null;
+        this.inv = [];
     }
     
     draw(darkness){
@@ -121,38 +210,52 @@ class astronaut{
                 this.progress = 0;
             }
         }else{
-            var nx = 0;
-            var ny = 0;
-            var nz = 0;
-            var fall = false;
+            /*
             if(map[this.x][this.y][this.z+1].type == null){
                 nz++;
-                fall = true;
-            }else{
-                var r = Math.random();
-                if(r < 0.25){
-                    nx = 1;
-                }else if(r < 0.5){
-                    ny = 1;
-                }else if(r < 0.75){
-                    nx = -1;
-                }else{
-                    ny = -1;
-                }
+                this.dx += nx;
+                this.dy += ny;
+                this.dz += nz;
+                this.progress = 10;
+                return;
+            }*/
 
-            }
-            if(!oob(this.x+nx,this.y+ny)){
-                if(map[this.x+nx][this.y+ny][this.z].type == null){
-                    this.dx += nx;
-                    this.dy += ny;
-                    this.dz += nz;
-                    this.progress = this.speed;
-                    if(fall){
-                        this.progress = 10;
+            if(this.path.length == 0){
+                var rx = this.x+(Math.round(Math.random()*20)-10)
+                var ry = this.x+(Math.round(Math.random()*20)-10)
+                if(!oob(rx,ry)){
+                    var rz = 0;
+                    for(var i = 0; i < map.depth; i++){
+                        if(map[rx][ry][i].type != null){
+                            rz = i-1;
+                            break;
+                        }
                     }
+                    this.path = makePath(this.x,this.y,this.z,rx,ry,rz)
+                }
+                return;
+                var nx = 0;
+                var ny = 0;
+                var nz = 0;
+                var fall = false;
+                if(map[this.x][this.y][this.z+1].type == null){
+                    nz++;
+                    fall = true;
                 }else{
-                    if(map[this.x+nx][this.y+ny][this.z-1].type == null){
-                        nz--;
+                    var r = Math.random();
+                    if(r < 0.25){
+                        nx = 1;
+                    }else if(r < 0.5){
+                        ny = 1;
+                    }else if(r < 0.75){
+                        nx = -1;
+                    }else{
+                        ny = -1;
+                    }
+
+                }
+                if(!oob(this.x+nx,this.y+ny)){
+                    if(map[this.x+nx][this.y+ny][this.z].type == null){
                         this.dx += nx;
                         this.dy += ny;
                         this.dz += nz;
@@ -160,8 +263,32 @@ class astronaut{
                         if(fall){
                             this.progress = 10;
                         }
+                    }else{
+                        if(map[this.x+nx][this.y+ny][this.z-1].type == null){
+                            nz--;
+                            this.dx += nx;
+                            this.dy += ny;
+                            this.dz += nz;
+                            this.progress = this.speed;
+                            if(fall){
+                                this.progress = 10;
+                            }
+                        }
                     }
                 }
+            }else{
+                if(map[this.x+nx][this.y+ny][this.z+1].type == null){
+                    this.path.pop()
+                    this.dz = this.z+1;
+                    this.progress = 10;
+                }else{
+                    var next = this.path.pop()
+                    this.dx = next[0];
+                    this.dy = next[1];
+                    this.dz = next[2];
+                    this.progress = this.speed;
+                }
+                
             }
         }
         
@@ -435,9 +562,19 @@ function drawAll(){
                 astronauts[i].draw((astronauts[i].z-cameraDepth));
         }
     }
-
-    
 }
+
+class job{
+    constructor(_x,_y,_z){
+        this.x = _x;
+        this.y = _y;
+        this.z = _z;
+        this.task = function(){return;}
+        this.claim = null;
+    }
+}
+
+var jobs = [];
 
 function updateAll(){
     camerax += cameraMovement[0];
