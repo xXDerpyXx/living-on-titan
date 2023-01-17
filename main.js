@@ -88,16 +88,19 @@ var tileTypes = {
 }
 
 var idtrack = 0;
+var maxLength = 20;
 
 function makePath(ax,ay,az,bx,by,bz){
     var active = [];
     var inactive = [];
     active.push([ax,ay,az,[]]);
     tempActive = []
+    var tries = 0;
     while(true){
+        tries++;
         for(var i = active.length-1; i > 1;i--){
             var temp = active.pop();
-            if(temp[0] == bx && temp[1] == by && temp[2] == bz){
+            if(temp[0] == bx && temp[1] == by && temp[2] == bz || tries > maxLength){
                 return temp[3]
             }
             
@@ -704,7 +707,7 @@ document.addEventListener("keyup", (event) => {
 
 });
 
-for(var i = 0; i < 100; i++){
+for(var i = 0; i < 0; i++){
     astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
 }
 
