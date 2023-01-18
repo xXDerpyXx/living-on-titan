@@ -88,7 +88,7 @@ var tileTypes = {
 }
 
 var idtrack = 0;
-var maxLength = 100;
+var maxLength = 20;
 
 function makePath(ax,ay,az,bx,by,bz){
     var active = [];
@@ -106,7 +106,7 @@ function makePath(ax,ay,az,bx,by,bz){
             
             var temp = active.pop();
             if((temp[0] == bx && temp[1] == by && temp[2] == bz)){
-                temp[3] = temp[3].reverse();
+                temp[3] = temp[3];
                 temp[3].pop();
                 //console.log(temp[3])
                 //console.log(triedNodes)
@@ -124,7 +124,7 @@ function makePath(ax,ay,az,bx,by,bz){
                     }
                 }
                 //console.log(active);
-                var tempShort = inactive[recordId][3].reverse();
+                var tempShort = inactive[recordId][3];
                 tempShort.pop();
                 console.log(tempShort)
                 //console.log(triedNodes)
@@ -137,9 +137,9 @@ function makePath(ax,ay,az,bx,by,bz){
                     //console.log(tempPath)
                     tempPath.push([0,0,1]);
                     tempActive.push([temp[0],temp[1],temp[2]+1,tempPath]);
-                    if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
+                    //if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
                         triedNodes.push(temp[0]+"|"+temp[1]+"|"+(temp[2]+1));
-                    }
+                    //}
                 //}
             }else{
                 if(!oob(temp[0]+1,temp[1])){
@@ -286,13 +286,14 @@ class astronaut{
             }
         }else{
             
-            if(map[this.x][this.y][this.z+1].type == null){
-                this.dz = this.z+1;
-                this.progress = 10;
-                return;
-            }
+            
 
             if(this.path.length == 0){
+                if(map[this.x][this.y][this.z+1].type == null){
+                    this.dz = this.z+1;
+                    this.progress = 10;
+                    return;
+                }
                 var rx = this.x+(Math.round(Math.random()*20)-10)
                 var ry = this.x+(Math.round(Math.random()*20)-10)
                 if(!oob(rx,ry)){
@@ -350,11 +351,11 @@ class astronaut{
                 }
             }else{
                 console.log(this.path.length)
-                if(map[this.x][this.y][this.z+1].type == null){
-                    this.path.shift()
-                    this.dz = this.z+1;
-                    this.progress = 10;
-                }else{
+                //if(map[this.x][this.y][this.z+1].type == null){
+                    //this.path.shift()
+                    //this.dz = this.z+1;
+                    //this.progress = 10;
+                //}else{
                     var next = this.path.shift()
                     console.log(next)
                     this.dx = this.x+next[0];
@@ -392,7 +393,7 @@ class astronaut{
                     }
                     
                     
-                }
+                //}
                 
             }
         }
@@ -809,7 +810,7 @@ document.addEventListener("keyup", (event) => {
 
 });
 
-for(var i = 0; i < 1; i++){
+for(var i = 0; i < 10; i++){
     astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
 }
 
