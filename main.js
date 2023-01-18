@@ -93,78 +93,131 @@ var maxLength = 20;
 function makePath(ax,ay,az,bx,by,bz){
     var active = [];
     var inactive = [];
-    active.push([ax,ay,az,[]]);
+    var triedNodes = [];
+    active.push([ax,ay,az,[[0,0,0]]]);
+    triedNodes.push(ax+"|"+ay+"|"+az)
     tempActive = []
+    var tempPath = []
     var tries = 0;
     while(true){
         tries++;
-        for(var i = active.length-1; i > 1;i--){
+        for(var i = active.length; i > 0;i--){
             var temp = active.pop();
-            if(temp[0] == bx && temp[1] == by && temp[2] == bz || tries > maxLength){
-                return temp[3]
+            if((temp[0] == bx && temp[1] == by && temp[2] == bz)){
+                temp[3] = temp[3].reverse();
+                temp[3].pop();
+                //console.log(temp[3])
+                //console.log(triedNodes)
+                return temp[3];
+            }
+
+            if(temp[3].length > maxLength || (tries > 1000 && inactive.length > 0)){
+                var recordShortest = 10000;
+                var recordId = 0;
+                for(var i = 0; i < inactive.length; i++){
+                    var tempDist = dist(inactive[i][inactive[i].length-1][0],inactive[i][inactive[i].length-1][1],inactive[i][inactive[i].length-1][2],bx,by,bz)
+                    if( tempDist < recordShortest){
+                        recordShortest = tempDist;
+                        recordId = i;
+                    }
+                }
+                //console.log(active);
+                var tempShort = inactive[recordId][3].reverse();
+                tempShort.pop();
+                console.log(tempShort)
+                //console.log(triedNodes)
+                return tempShort;
             }
             
             if(map[temp[0]][temp[1]][temp[2]+1].type == null){
-                temp[3].push([0,0,1]);
-                tempActive.push([temp[0],temp[1],temp[2]+1,temp[3]]);
+                //if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
+                    tempPath = temp[3] 
+                    tempPath.push([0,0,1]);
+                    tempActive.push([temp[0],temp[1],temp[2]+1,tempPath]);
+                    triedNodes.push(temp[0]+"|"+temp[1]+"|"+(temp[2]+1));
+                //}
             }else{
                 if(!oob(temp[0]+1,temp[1])){
                     if(map[temp[0]+1][temp[1]][temp[2]].type == null){
-                        temp[3].push([1,0,0]);
-                        tempActive.push([temp[0]+1,temp[1],temp[2],temp[3]]);
-                        temp[3].pop();
+                        if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+temp[2])){
+                            tempPath = temp[3] 
+                            tempPath.push([1,0,0]);
+                            tempActive.push([temp[0]+1,temp[1],temp[2],tempPath]);
+                            triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+temp[2]);
+                        }
                     }else{
                         if(map[temp[0]+1][temp[1]][temp[2]-1].type == null){
-                            temp[3].push([1,0,-1]);
-                            tempActive.push([temp[0]+1,temp[1],temp[2]-1,temp[3]]);
-                            temp[3].pop();
+                            if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
+                                tempPath = temp[3] 
+                                tempPath.push([1,0,-1]);
+                                tempActive.push([temp[0]+1,temp[1],temp[2]-1,tempPath]);
+                                triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1));
+                            }
                         }
                     }
                 }
 
                 if(!oob(temp[0]-1,temp[1])){
                     if(map[temp[0]-1][temp[1]][temp[2]].type == null){
-                        temp[3].push([-1,0,0]);
-                        tempActive.push([temp[0]-1,temp[1],temp[2],temp[3]]);
-                        temp[3].pop();
+                        if(!triedNodes.includes((temp[0]-1)+"|"+temp[1]+"|"+temp[2])){
+                            tempPath = temp[3] 
+                            tempPath.push([-1,0,0]);
+                            tempActive.push([temp[0]-1,temp[1],temp[2],tempPath]);
+                            triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+temp[2]);
+                        }
                     }else{
                         if(map[temp[0]-1][temp[1]][temp[2]-1].type == null){
-                            temp[3].push([-1,0,-1]);
-                            tempActive.push([temp[0]-1,temp[1],temp[2]-1,temp[3]]);
-                            temp[3].pop();
+                            if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
+                                tempPath = temp[3] 
+                                tempPath.push([-1,0,-1]);
+                                tempActive.push([temp[0]-1,temp[1],temp[2]-1,tempPath]);
+                                triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+(temp[2]-1));
+                            }
                         }
                     }
                 }
 
                 if(!oob(temp[0],temp[1]+1)){
                     if(map[temp[0]][temp[1]+1][temp[2]].type == null){
-                        temp[3].push([0,1,0]);
-                        tempActive.push([temp[0],temp[1]+1,temp[2],temp[3]]);
-                        temp[3].pop();
+                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+temp[2])){
+                            tempPath = temp[3] 
+                            tempPath.push([0,1,0]);
+                            tempActive.push([temp[0],(temp[1]+1),temp[2],tempPath]);
+                            triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+temp[2]);
+                        }
                     }else{
                         if(map[temp[0]][temp[1]+1][temp[2]-1].type == null){
-                            temp[3].push([0,1,-1]);
-                            tempActive.push([temp[0],temp[1]+1,temp[2]-1,temp[3]]);
-                            temp[3].pop();
+                            if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1))){
+                                tempPath = temp[3] 
+                                tempPath.push([0,1,-1]);
+                                tempActive.push([temp[0],(temp[1]+1),(temp[2]-1),tempPath]);
+                                triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1));
+                            }
                         }
                     }
                 }
 
                 if(!oob(temp[0],temp[1]-1)){
                     if(map[temp[0]][temp[1]-1][temp[2]].type == null){
-                        temp[3].push([0,1,0]);
-                        tempActive.push([temp[0],temp[1]-1,temp[2],temp[3]]);
-                        temp[3].pop();
+                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+temp[2])){
+                            tempPath = temp[3] 
+                            tempPath.push([0,1,0]);
+                            tempActive.push([temp[0],(temp[1]-1),temp[2],tempPath]);
+                            triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+temp[2]);
+                        }
                     }else{
                         if(map[temp[0]][temp[1]-1][temp[2]-1].type == null){
-                            temp[3].push([0,-1,-1]);
-                            tempActive.push([temp[0],temp[1]-1,temp[2]-1,temp[3]]);
-                            temp[3].pop();
+                            if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1))){
+                                tempPath = temp[3] 
+                                tempPath.push([0,-1,-1]);
+                                tempActive.push([temp[0],(temp[1]-1),(temp[2]-1),tempPath]);
+                                triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1));
+                            }
                         }
                     }
                 }
             }
-            
+            //console.log(triedNodes.length)
             inactive.push(temp);
         }
         for(var i = 0; i < tempActive.length; i++){
@@ -201,6 +254,17 @@ class astronaut{
             img = document.getElementById("dark-astronaut");
             ctx.drawImage(img,((((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize)+camerax,((((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
         }
+
+        ctx.beginPath();
+        ctx.moveTo(((this.x*settings.tileSize)+camerax)+(settings.tileSize/2),((this.y*settings.tileSize)+cameray)+(settings.tileSize/2))
+        var tempxy = [this.x,this.y]
+        for(var i = 0; i < this.path.length; i++){
+            tempxy[0] += this.path[i][0];
+            tempxy[1] += this.path[i][1];
+            ctx.lineTo(((tempxy[0]*settings.tileSize)+camerax)+(settings.tileSize/2),((tempxy[1]*settings.tileSize)+cameray)+(settings.tileSize/2))
+        }
+        ctx.stroke();
+
     }
 
     update(){
@@ -213,15 +277,12 @@ class astronaut{
                 this.progress = 0;
             }
         }else{
-            /*
+            
             if(map[this.x][this.y][this.z+1].type == null){
-                nz++;
-                this.dx += nx;
-                this.dy += ny;
-                this.dz += nz;
+                this.dz = this.z+1;
                 this.progress = 10;
                 return;
-            }*/
+            }
 
             if(this.path.length == 0){
                 var rx = this.x+(Math.round(Math.random()*20)-10)
@@ -280,16 +341,49 @@ class astronaut{
                     }
                 }
             }else{
-                if(map[this.x+nx][this.y+ny][this.z+1].type == null){
+                console.log(this.path.length)
+                if(map[this.x][this.y][this.z+1].type == null){
                     this.path.pop()
                     this.dz = this.z+1;
                     this.progress = 10;
                 }else{
                     var next = this.path.pop()
-                    this.dx = next[0];
-                    this.dy = next[1];
-                    this.dz = next[2];
+                    console.log(next)
+                    this.dx = this.x+next[0];
+                    this.dy = this.y+next[1];
+                    this.dz = this.z+next[2];
+                    console.log(this.x+","+this.y+","+this.z)
+                    console.log(this.dx+","+this.dy+","+this.dz)
+                    if((this.x == this.dx) && (this.y == this.dy) && (this.z == this.dz)){
+                        return;
+                    }
                     this.progress = this.speed;
+                    if(!oob(this.dx,this.dy)){
+                        if(map[this.dx][this.dy][this.dz].type != null){
+                            console.log(next);
+                            console.log(map[this.dx][this.dy][this.dz].type)
+                            this.dx = this.x
+                            this.dy = this.y
+                            this.dz = this.z
+                            this.path = [];
+                        }else{
+                            if(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz) > 1.5){
+                                console.log(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz))
+                                this.dx = this.x
+                                this.dy = this.y
+                                this.dz = this.z
+                                this.path = [];
+                                
+                            }
+                        }
+                    }else{
+                        this.dx = this.x
+                        this.dy = this.y
+                        this.dz = this.z
+                        this.path = [];
+                    }
+                    
+                    
                 }
                 
             }
@@ -707,7 +801,7 @@ document.addEventListener("keyup", (event) => {
 
 });
 
-for(var i = 0; i < 0; i++){
+for(var i = 0; i < 1; i++){
     astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
 }
 
@@ -715,4 +809,25 @@ setInterval(drawAll,50);
 setInterval(updateAll,100)
 for(var i = 0; i < 500; i++){
     updateAll();
+}
+
+function getCursorPosition(canvas, event) {
+    var rect = canvas.getBoundingClientRect()
+    var x = event.clientX - rect.left
+    var y = event.clientY - rect.top
+    var tempxy = mouseToMap(x,y)
+    console.log("x: " + tempxy[0] + " y: " + tempxy[1])
+    return tempxy;
+}
+
+const canvas = document.querySelector('canvas')
+canvas.addEventListener('mousedown', function(e) {
+    var xy = getCursorPosition(canvas, e);
+    for(var i = 0; i < astronauts.length; i++){
+        astronauts[i].path = makePath(astronauts[i].x,astronauts[i].y,astronauts[i].z,xy[0],xy[1],cameraDepth)
+    }
+})
+
+function mouseToMap(x,y){
+    return [Math.floor((x-camerax)/settings.tileSize),Math.floor((y-cameray)/settings.tileSize)]
 }
