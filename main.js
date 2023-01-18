@@ -88,7 +88,7 @@ var tileTypes = {
 }
 
 var idtrack = 0;
-var maxLength = 20;
+var maxLength = 100;
 
 function makePath(ax,ay,az,bx,by,bz){
     var active = [];
@@ -101,7 +101,9 @@ function makePath(ax,ay,az,bx,by,bz){
     var tries = 0;
     while(true){
         tries++;
+        //console.log(active.length)
         for(var i = active.length; i > 0;i--){
+            
             var temp = active.pop();
             if((temp[0] == bx && temp[1] == by && temp[2] == bz)){
                 temp[3] = temp[3].reverse();
@@ -111,11 +113,11 @@ function makePath(ax,ay,az,bx,by,bz){
                 return temp[3];
             }
 
-            if(temp[3].length > maxLength || (tries > 1000 && inactive.length > 0)){
+            if(temp[3].length > maxLength || (tries > 100 && inactive.length > 0)){
                 var recordShortest = 10000;
                 var recordId = 0;
                 for(var i = 0; i < inactive.length; i++){
-                    var tempDist = dist(inactive[i][inactive[i].length-1][0],inactive[i][inactive[i].length-1][1],inactive[i][inactive[i].length-1][2],bx,by,bz)
+                    var tempDist = dist(inactive[i][0],inactive[i][1],inactive[i][2],bx,by,bz)
                     if( tempDist < recordShortest){
                         recordShortest = tempDist;
                         recordId = i;
@@ -131,16 +133,19 @@ function makePath(ax,ay,az,bx,by,bz){
             
             if(map[temp[0]][temp[1]][temp[2]+1].type == null){
                 //if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
-                    tempPath = temp[3] 
+                    tempPath = JSON.parse(JSON.stringify(temp[3]));
+                    //console.log(tempPath)
                     tempPath.push([0,0,1]);
                     tempActive.push([temp[0],temp[1],temp[2]+1,tempPath]);
-                    triedNodes.push(temp[0]+"|"+temp[1]+"|"+(temp[2]+1));
+                    if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
+                        triedNodes.push(temp[0]+"|"+temp[1]+"|"+(temp[2]+1));
+                    }
                 //}
             }else{
                 if(!oob(temp[0]+1,temp[1])){
                     if(map[temp[0]+1][temp[1]][temp[2]].type == null){
                         if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+temp[2])){
-                            tempPath = temp[3] 
+                            tempPath = JSON.parse(JSON.stringify(temp[3])); 
                             tempPath.push([1,0,0]);
                             tempActive.push([temp[0]+1,temp[1],temp[2],tempPath]);
                             triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+temp[2]);
@@ -148,7 +153,7 @@ function makePath(ax,ay,az,bx,by,bz){
                     }else{
                         if(map[temp[0]+1][temp[1]][temp[2]-1].type == null){
                             if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
-                                tempPath = temp[3] 
+                                tempPath = JSON.parse(JSON.stringify(temp[3])); 
                                 tempPath.push([1,0,-1]);
                                 tempActive.push([temp[0]+1,temp[1],temp[2]-1,tempPath]);
                                 triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1));
@@ -160,7 +165,7 @@ function makePath(ax,ay,az,bx,by,bz){
                 if(!oob(temp[0]-1,temp[1])){
                     if(map[temp[0]-1][temp[1]][temp[2]].type == null){
                         if(!triedNodes.includes((temp[0]-1)+"|"+temp[1]+"|"+temp[2])){
-                            tempPath = temp[3] 
+                            tempPath = JSON.parse(JSON.stringify(temp[3])); 
                             tempPath.push([-1,0,0]);
                             tempActive.push([temp[0]-1,temp[1],temp[2],tempPath]);
                             triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+temp[2]);
@@ -168,7 +173,7 @@ function makePath(ax,ay,az,bx,by,bz){
                     }else{
                         if(map[temp[0]-1][temp[1]][temp[2]-1].type == null){
                             if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
-                                tempPath = temp[3] 
+                                tempPath = JSON.parse(JSON.stringify(temp[3]));
                                 tempPath.push([-1,0,-1]);
                                 tempActive.push([temp[0]-1,temp[1],temp[2]-1,tempPath]);
                                 triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+(temp[2]-1));
@@ -180,7 +185,7 @@ function makePath(ax,ay,az,bx,by,bz){
                 if(!oob(temp[0],temp[1]+1)){
                     if(map[temp[0]][temp[1]+1][temp[2]].type == null){
                         if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+temp[2])){
-                            tempPath = temp[3] 
+                            tempPath = JSON.parse(JSON.stringify(temp[3]));
                             tempPath.push([0,1,0]);
                             tempActive.push([temp[0],(temp[1]+1),temp[2],tempPath]);
                             triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+temp[2]);
@@ -188,7 +193,7 @@ function makePath(ax,ay,az,bx,by,bz){
                     }else{
                         if(map[temp[0]][temp[1]+1][temp[2]-1].type == null){
                             if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1))){
-                                tempPath = temp[3] 
+                                tempPath = JSON.parse(JSON.stringify(temp[3]));
                                 tempPath.push([0,1,-1]);
                                 tempActive.push([temp[0],(temp[1]+1),(temp[2]-1),tempPath]);
                                 triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1));
@@ -200,15 +205,15 @@ function makePath(ax,ay,az,bx,by,bz){
                 if(!oob(temp[0],temp[1]-1)){
                     if(map[temp[0]][temp[1]-1][temp[2]].type == null){
                         if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+temp[2])){
-                            tempPath = temp[3] 
-                            tempPath.push([0,1,0]);
+                            tempPath = JSON.parse(JSON.stringify(temp[3]));
+                            tempPath.push([0,-1,0]);
                             tempActive.push([temp[0],(temp[1]-1),temp[2],tempPath]);
                             triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+temp[2]);
                         }
                     }else{
                         if(map[temp[0]][temp[1]-1][temp[2]-1].type == null){
                             if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1))){
-                                tempPath = temp[3] 
+                                tempPath = JSON.parse(JSON.stringify(temp[3]));
                                 tempPath.push([0,-1,-1]);
                                 tempActive.push([temp[0],(temp[1]-1),(temp[2]-1),tempPath]);
                                 triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1));
@@ -256,11 +261,14 @@ class astronaut{
         }
 
         ctx.beginPath();
+        
         ctx.moveTo(((this.x*settings.tileSize)+camerax)+(settings.tileSize/2),((this.y*settings.tileSize)+cameray)+(settings.tileSize/2))
-        var tempxy = [this.x,this.y]
+        var tempxy = [this.x,this.y,this.z]
         for(var i = 0; i < this.path.length; i++){
+            ctx.strokeStyle = "rgb("+(255-((tempxy[2]-cameraDepth)*20))+",0,0)";
             tempxy[0] += this.path[i][0];
             tempxy[1] += this.path[i][1];
+            tempxy[2] += this.path[i][2];
             ctx.lineTo(((tempxy[0]*settings.tileSize)+camerax)+(settings.tileSize/2),((tempxy[1]*settings.tileSize)+cameray)+(settings.tileSize/2))
         }
         ctx.stroke();
@@ -343,11 +351,11 @@ class astronaut{
             }else{
                 console.log(this.path.length)
                 if(map[this.x][this.y][this.z+1].type == null){
-                    this.path.pop()
+                    this.path.shift()
                     this.dz = this.z+1;
                     this.progress = 10;
                 }else{
-                    var next = this.path.pop()
+                    var next = this.path.shift()
                     console.log(next)
                     this.dx = this.x+next[0];
                     this.dy = this.y+next[1];
@@ -807,7 +815,7 @@ for(var i = 0; i < 1; i++){
 
 setInterval(drawAll,50);
 setInterval(updateAll,100)
-for(var i = 0; i < 500; i++){
+for(var i = 0; i < 00; i++){
     updateAll();
 }
 
