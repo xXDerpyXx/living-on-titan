@@ -81,24 +81,28 @@ var grassupdate = function(ref){
 
     if(tempstate > 0 && Math.random() > 0.95){
         var spots = [];
-        for(var x = ref.x-1; x < ref.x; x++){
-            for(var y = ref.y-1; y < ref.y; y++){
-                for(var z = ref.z-1; z < ref.z; z++){
-                    if(x != ref.x && y != ref.y && z != ref.z){
+        for(var x = tempx-2; x < tempx+1; x++){
+            for(var y = tempy-2; y < tempy+1; y++){
+                for(var z = tempz-2; z < tempz+1; z++){
+                    if(x == tempx && y == tempy && z == tempz){
+                    }else{
                         if(!soob(x,y,z)){
-                            if(map[x][y][z].type == null){
-                                spots.push(map[x][y][z]);
+                            if(map[x][y][z].type == null && map[x][y][z+1].type == "organicSand"){
+                                spots.push([x,y,z]);
                             }
                         }
                     }
                 }
             }
         }
+        
         if(spots.length == 0 ){
             return;
         }
+        
         var newSpot = spots[Math.floor(Math.random() * spots.length)];
-        map[newSpot.x][newSpot.y][newSpot.z].type = "grass";
+        console.log(newSpot)
+        map[newSpot[0]][newSpot[1]][newSpot[2]].type = "grass";
         return;
 
     }
@@ -427,26 +431,26 @@ class astronaut{
                     }
                 }
             }else{
-                console.log(this.path.length)
+                //console.log(this.path.length)
                 //if(map[this.x][this.y][this.z+1].type == null){
                     //this.path.shift()
                     //this.dz = this.z+1;
                     //this.progress = 10;
                 //}else{
                     var next = this.path.shift()
-                    console.log(next)
+                    //console.log(next)
                     this.dx = this.x+next[0];
                     this.dy = this.y+next[1];
                     this.dz = this.z+next[2];
-                    console.log(this.x+","+this.y+","+this.z)
-                    console.log(this.dx+","+this.dy+","+this.dz)
+                    //console.log(this.x+","+this.y+","+this.z)
+                    //console.log(this.dx+","+this.dy+","+this.dz)
                     if((this.x == this.dx) && (this.y == this.dy) && (this.z == this.dz)){
                         return;
                     }
                     this.progress = this.speed;
                     if(!passable(this.dx,this.dy,this.dz)){
-                        console.log(next);
-                        console.log(map[this.dx][this.dy][this.dz].type)
+                        //console.log(next);
+                        //console.log(map[this.dx][this.dy][this.dz].type)
                         this.dx = this.x
                         this.dy = this.y
                         this.dz = this.z
@@ -454,7 +458,7 @@ class astronaut{
                     }else{
                         
                         if(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz) > 1.5){
-                            console.log(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz))
+                            //console.log(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz))
                             this.dx = this.x
                             this.dy = this.y
                             this.dz = this.z
