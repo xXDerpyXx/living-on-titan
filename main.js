@@ -58,6 +58,74 @@ var waterupdate = function(ref){
     
 }
 
+var grassupdate = function(ref){
+    var tempx = ref.x;
+    var tempy = ref.y;
+    var tempz = ref.z;
+    var tempstate = map[tempx][tempy][tempz].state;
+    if(map[tempx][tempy][tempz+1].type != "organicSand"){
+        map[tempx][tempy][tempz].type = null;
+        map[tempx][tempy][tempz].state = 0;
+        return;
+    }
+    if(map[tempx][tempy][tempz-1].type != null){
+        map[tempx][tempy][tempz].type = null;
+        map[tempx][tempy][tempz].state = 0;
+        return;
+    }
+    if(tempstate < 2){
+        if(Math.random() > 0.99){
+            map[tempx][tempy][tempz].state += 1;
+        }
+    }
+
+    if(tempstate > 0 && Math.random() > 0.95){
+        var spots = [];
+        for(var x = ref.x-1; x < ref.x; x++){
+            for(var y = ref.y-1; y < ref.y; y++){
+                for(var z = ref.z-1; z < ref.z; z++){
+                    if(x != ref.x && y != ref.y && z != ref.z){
+                        if(!soob(x,y,z)){
+                            if(map[x][y][z].type == null){
+                                spots.push(map[x][y][z]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if(spots.length == 0 ){
+            return;
+        }
+        var newSpot = spots[Math.floor(Math.random() * spots.length)];
+        map[newSpot.x][newSpot.y][newSpot.z].type = "grass";
+        return;
+
+    }
+}
+
+var plantupdate = function(ref){
+    var tempx = ref.x;
+    var tempy = ref.y;
+    var tempz = ref.z;
+    var tempstate = map[tempx][tempy][tempz].state;
+    if(map[tempx][tempy][tempz+1].type != "organicSand"){
+        map[tempx][tempy][tempz].type = null;
+        map[tempx][tempy][tempz].state = 0;
+        return;
+    }
+    if(map[tempx][tempy][tempz-1].type != null){
+        map[tempx][tempy][tempz].type = null;
+        map[tempx][tempy][tempz].state = 0;
+        return;
+    }
+    if(tempstate < 1){
+        if(Math.random() > 0.99){
+            map[tempx][tempy][tempz].state += 1;
+        }
+    }
+}
+
 var tileTypes = {
     organicSand:{
         stopDraw:true,
@@ -84,6 +152,19 @@ var tileTypes = {
         texture:"liquid-methane",
         update:waterupdate
     },
+    grass:{
+        stopDraw:false,
+        texture:"grass",
+        update:grassupdate,
+        passable:true
+    },
+
+    bush:{
+        stopDraw:false,
+        texture:"red_plant",
+        update:plantupdate,
+        passable:true
+    }
 
 }
 
@@ -131,7 +212,7 @@ function makePath(ax,ay,az,bx,by,bz){
                 return tempShort;
             }
             
-            if(map[temp[0]][temp[1]][temp[2]+1].type == null){
+            if(passable(temp[0],temp[1],temp[2]+1)){
                 //if(!triedNodes.includes(temp[0]+"|"+temp[1]+"|"+(temp[2]+1))){
                     tempPath = JSON.parse(JSON.stringify(temp[3]));
                     //console.log(tempPath)
@@ -142,82 +223,78 @@ function makePath(ax,ay,az,bx,by,bz){
                     //}
                 //}
             }else{
-                if(!oob(temp[0]+1,temp[1])){
-                    if(map[temp[0]+1][temp[1]][temp[2]].type == null){
-                        if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+temp[2])){
+
+                if(passable(temp[0]+1,temp[1],temp[2])){
+                    if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+temp[2])){
+                        tempPath = JSON.parse(JSON.stringify(temp[3])); 
+                        tempPath.push([1,0,0]);
+                        tempActive.push([temp[0]+1,temp[1],temp[2],tempPath]);
+                        triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+temp[2]);
+                    }
+                }else{
+                    if(passable(temp[0]+1,temp[1],temp[2]-1)){
+                        if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
                             tempPath = JSON.parse(JSON.stringify(temp[3])); 
-                            tempPath.push([1,0,0]);
-                            tempActive.push([temp[0]+1,temp[1],temp[2],tempPath]);
-                            triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+temp[2]);
-                        }
-                    }else{
-                        if(map[temp[0]+1][temp[1]][temp[2]-1].type == null){
-                            if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
-                                tempPath = JSON.parse(JSON.stringify(temp[3])); 
-                                tempPath.push([1,0,-1]);
-                                tempActive.push([temp[0]+1,temp[1],temp[2]-1,tempPath]);
-                                triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1));
-                            }
+                            tempPath.push([1,0,-1]);
+                            tempActive.push([temp[0]+1,temp[1],temp[2]-1,tempPath]);
+                            triedNodes.push((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1));
                         }
                     }
                 }
+                
 
-                if(!oob(temp[0]-1,temp[1])){
-                    if(map[temp[0]-1][temp[1]][temp[2]].type == null){
-                        if(!triedNodes.includes((temp[0]-1)+"|"+temp[1]+"|"+temp[2])){
-                            tempPath = JSON.parse(JSON.stringify(temp[3])); 
-                            tempPath.push([-1,0,0]);
-                            tempActive.push([temp[0]-1,temp[1],temp[2],tempPath]);
-                            triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+temp[2]);
-                        }
-                    }else{
-                        if(map[temp[0]-1][temp[1]][temp[2]-1].type == null){
-                            if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
-                                tempPath = JSON.parse(JSON.stringify(temp[3]));
-                                tempPath.push([-1,0,-1]);
-                                tempActive.push([temp[0]-1,temp[1],temp[2]-1,tempPath]);
-                                triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+(temp[2]-1));
-                            }
-                        }
+                if(passable(temp[0]-1,temp[1],temp[2])){
+                    if(!triedNodes.includes((temp[0]-1)+"|"+temp[1]+"|"+temp[2])){
+                        tempPath = JSON.parse(JSON.stringify(temp[3])); 
+                        tempPath.push([-1,0,0]);
+                        tempActive.push([temp[0]-1,temp[1],temp[2],tempPath]);
+                        triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+temp[2]);
                     }
-                }
-
-                if(!oob(temp[0],temp[1]+1)){
-                    if(map[temp[0]][temp[1]+1][temp[2]].type == null){
-                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+temp[2])){
+                }else{
+                    if(passable(temp[0]-1,temp[1],temp[2]-1)){
+                        if(!triedNodes.includes((temp[0]+1)+"|"+temp[1]+"|"+(temp[2]-1))){
                             tempPath = JSON.parse(JSON.stringify(temp[3]));
-                            tempPath.push([0,1,0]);
-                            tempActive.push([temp[0],(temp[1]+1),temp[2],tempPath]);
-                            triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+temp[2]);
-                        }
-                    }else{
-                        if(map[temp[0]][temp[1]+1][temp[2]-1].type == null){
-                            if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1))){
-                                tempPath = JSON.parse(JSON.stringify(temp[3]));
-                                tempPath.push([0,1,-1]);
-                                tempActive.push([temp[0],(temp[1]+1),(temp[2]-1),tempPath]);
-                                triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1));
-                            }
+                            tempPath.push([-1,0,-1]);
+                            tempActive.push([temp[0]-1,temp[1],temp[2]-1,tempPath]);
+                            triedNodes.push((temp[0]-1)+"|"+temp[1]+"|"+(temp[2]-1));
                         }
                     }
                 }
+                
 
-                if(!oob(temp[0],temp[1]-1)){
-                    if(map[temp[0]][temp[1]-1][temp[2]].type == null){
-                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+temp[2])){
+                if(passable(temp[0],temp[1]+1,temp[2])){
+                    if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+temp[2])){
+                        tempPath = JSON.parse(JSON.stringify(temp[3]));
+                        tempPath.push([0,1,0]);
+                        tempActive.push([temp[0],(temp[1]+1),temp[2],tempPath]);
+                        triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+temp[2]);
+                    }
+                }else{
+                    if(passable(temp[0],temp[1]+1,temp[2]-1)){
+                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1))){
                             tempPath = JSON.parse(JSON.stringify(temp[3]));
-                            tempPath.push([0,-1,0]);
-                            tempActive.push([temp[0],(temp[1]-1),temp[2],tempPath]);
-                            triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+temp[2]);
+                            tempPath.push([0,1,-1]);
+                            tempActive.push([temp[0],(temp[1]+1),(temp[2]-1),tempPath]);
+                            triedNodes.push((temp[0])+"|"+(temp[1]+1)+"|"+(temp[2]-1));
                         }
-                    }else{
-                        if(map[temp[0]][temp[1]-1][temp[2]-1].type == null){
-                            if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1))){
-                                tempPath = JSON.parse(JSON.stringify(temp[3]));
-                                tempPath.push([0,-1,-1]);
-                                tempActive.push([temp[0],(temp[1]-1),(temp[2]-1),tempPath]);
-                                triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1));
-                            }
+                    }
+                }
+                
+
+                if(passable(temp[0],temp[1]-1,temp[2])){
+                    if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+temp[2])){
+                        tempPath = JSON.parse(JSON.stringify(temp[3]));
+                        tempPath.push([0,-1,0]);
+                        tempActive.push([temp[0],(temp[1]-1),temp[2],tempPath]);
+                        triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+temp[2]);
+                    }
+                }else{
+                    if(passable(temp[0],temp[1]-1,temp[2]-1)){
+                        if(!triedNodes.includes((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1))){
+                            tempPath = JSON.parse(JSON.stringify(temp[3]));
+                            tempPath.push([0,-1,-1]);
+                            tempActive.push([temp[0],(temp[1]-1),(temp[2]-1),tempPath]);
+                            triedNodes.push((temp[0])+"|"+(temp[1]-1)+"|"+(temp[2]-1));
                         }
                     }
                 }
@@ -289,7 +366,7 @@ class astronaut{
             
 
             if(this.path.length == 0){
-                if(map[this.x][this.y][this.z+1].type == null){
+                if(passable(this.x,this.y,this.z+1)){
                     this.dz = this.z+1;
                     this.progress = 10;
                     return;
@@ -367,29 +444,23 @@ class astronaut{
                         return;
                     }
                     this.progress = this.speed;
-                    if(!oob(this.dx,this.dy)){
-                        if(map[this.dx][this.dy][this.dz].type != null){
-                            console.log(next);
-                            console.log(map[this.dx][this.dy][this.dz].type)
-                            this.dx = this.x
-                            this.dy = this.y
-                            this.dz = this.z
-                            this.path = [];
-                        }else{
-                            if(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz) > 1.5){
-                                console.log(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz))
-                                this.dx = this.x
-                                this.dy = this.y
-                                this.dz = this.z
-                                this.path = [];
-                                
-                            }
-                        }
-                    }else{
+                    if(!passable(this.dx,this.dy,this.dz)){
+                        console.log(next);
+                        console.log(map[this.dx][this.dy][this.dz].type)
                         this.dx = this.x
                         this.dy = this.y
                         this.dz = this.z
                         this.path = [];
+                    }else{
+                        
+                        if(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz) > 1.5){
+                            console.log(dist(this.x,this.y,this.z,this.dx,this.dy,this.dz))
+                            this.dx = this.x
+                            this.dy = this.y
+                            this.dz = this.z
+                            this.path = [];
+                            
+                        }
                     }
                     
                     
@@ -409,6 +480,7 @@ class tile{
         this.y = _y;
         this.z = _z;
         this.type = null;
+        this.state = 0;
     }
 
     draw(darkness){
@@ -429,7 +501,11 @@ class tile{
             }
         }
         //if(!hidden){
-            var img = document.getElementById(tileTypes[this.type].texture);
+            var suffix = "";
+            if(this.state != 0){
+                suffix = this.state;
+            }
+            var img = document.getElementById(tileTypes[this.type].texture+suffix);
             ctx.drawImage(img,(this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
             ctx.fillStyle = "rgba(0,0,0,"+darkness+")";
             ctx.fillRect((this.x*settings.tileSize)+camerax,(this.y*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
@@ -450,6 +526,22 @@ function soob(x,y,z){
         return true;
     }
     return false;
+}
+
+function passable(x,y,z){
+    if(soob(x,y,z)){
+        return false;
+    }else{
+        if(map[x][y][z].type == null){
+            return true;
+        }else{
+            if(tileTypes[map[x][y][z].type].passable){
+                return true
+            }else{
+                return false;
+            }
+        }
+    }
 }
 
 function dist(ax,ay,az,bx,by,bz){
@@ -490,7 +582,12 @@ function generateMap(width,height,depth){
             m[x][y] = [];
             for(var z = 0; z < depth; z++){
                 m[x][y][z] = new tile(x,y,z);
-                if(z > gen[x][y]){
+                if(z == Math.round(gen[x][y])){
+                    m[x][y][z].type = "grass";
+                    if(Math.random() > 0.95){
+                        m[x][y][z].type = "bush";
+                    }
+                }else if(z > gen[x][y]+1){
                     m[x][y][z].type = "organicSand";
                 }else if(z > settings.groundLevel){
                     m[x][y][z].type = "liquidMethane";
