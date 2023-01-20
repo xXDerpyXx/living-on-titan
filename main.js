@@ -74,12 +74,12 @@ var grassupdate = function(ref){
         return;
     }
     if(tempstate < 2){
-        if(Math.random() > 0.99){
+        if(Math.random() > 0.999){
             map[tempx][tempy][tempz].state += 1;
         }
     }
 
-    if(tempstate > 0 && Math.random() > 0.95){
+    if(tempstate > 0 && Math.random() > 0.99){
         var spots = [];
         for(var x = tempx-2; x < tempx+1; x++){
             for(var y = tempy-2; y < tempy+1; y++){
@@ -101,7 +101,7 @@ var grassupdate = function(ref){
         }
         
         var newSpot = spots[Math.floor(Math.random() * spots.length)];
-        console.log(newSpot)
+        //console.log(newSpot)
         map[newSpot[0]][newSpot[1]][newSpot[2]].type = "grass";
         return;
 
@@ -124,7 +124,7 @@ var plantupdate = function(ref){
         return;
     }
     if(tempstate < 1){
-        if(Math.random() > 0.99){
+        if(Math.random() > 0.999){
             map[tempx][tempy][tempz].state += 1;
         }
     }
@@ -174,6 +174,7 @@ var tileTypes = {
 
 var idtrack = 0;
 var maxLength = 20;
+var maxTries = 1000
 
 function makePath(ax,ay,az,bx,by,bz){
     var active = [];
@@ -187,7 +188,7 @@ function makePath(ax,ay,az,bx,by,bz){
     while(true){
         tries++;
         //console.log(active.length)
-        for(var i = active.length; i > 0;i--){
+        while(active.length > 0){
             
             var temp = active.pop();
             if((temp[0] == bx && temp[1] == by && temp[2] == bz)){
@@ -198,7 +199,7 @@ function makePath(ax,ay,az,bx,by,bz){
                 return temp[3];
             }
 
-            if(temp[3].length > maxLength || (tries > 100 && inactive.length > 0)){
+            if(temp[3].length > maxLength || (tries > maxTries && inactive.length > 0)){
                 var recordShortest = 10000;
                 var recordId = 0;
                 for(var i = 0; i < inactive.length; i++){
@@ -476,7 +477,217 @@ class astronaut{
     }
 }
 
+function findNear(_x,_y,_z,range,type){
+    for(var x = _x-range; x < _x+range; x++){
+        for(var y = _y-range; y < _y+range; y++){
+            for(var z = _z-range; z < _z+range; z++){
+                if(!soob(x,y,z)){
+                    if(map[x][y][z].type == type){
+                        return map[x][y][z];
+                    }
+                }
+            }
+        }
+    }
+    return null;
+}
 
+function findNearest(_x,_y,_z,range,type,state){
+    var nearest = null;
+    var nearDist = range*10;
+
+    for(var x = _x-range; x < _x+range; x++){
+        for(var y = _y-range; y < _y+range; y++){
+            for(var z = _z-range; z < _z+range; z++){
+                if(!soob(x,y,z)){
+                    if(map[x][y][z].type == type){
+                        if(state == null){
+                            if(dist(_x,_y,_z,x,y,z) < nearDist){
+                                nearest = map[x][y][z]
+                                nearDist = dist(_x,_y,_z,x,y,z)
+                            }
+                        }else if(map[x][y][z].state == state){
+                            if(dist(_x,_y,_z,x,y,z) < nearDist){
+                                nearest = map[x][y][z]
+                                nearDist = dist(_x,_y,_z,x,y,z)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return nearest;
+}
+
+var animalTypes = {
+    fruitBird:{
+        texture: "fruitBird",
+        update:function(ref){
+            animals[ref].hunger--;
+            animals[ref].cooldown--;
+
+            animals[ref].vx = Math.round(animals[ref].vx*100)/100;
+            animals[ref].vy = Math.round(animals[ref].vy*100)/100;
+            animals[ref].vz = Math.round(animals[ref].vz*100)/100;
+            var airFriction = 0.05;
+            if(animals[ref].vx > 0){
+                animals[ref].vx -= airFriction
+            }else if(animals[ref].vx < 0){
+                animals[ref].vx += airFriction;
+            }
+            
+            if(animals[ref].vy > 0){
+                animals[ref].vy -= airFriction;
+            }else if(animals[ref].vy < 0){
+                animals[ref].vy += airFriction;
+            }
+            //console.log(animals[ref].vx+","+animals[ref].vy)
+            animals[ref].x += animals[ref].vx;
+            animals[ref].y += animals[ref].vy;
+            animals[ref].z += animals[ref].vz;
+            
+            var r = {x:Math.floor(animals[ref].x),y:Math.floor(animals[ref].y),z:Math.floor(animals[ref].z)}
+
+            if(oob(r.x,r.y)){
+                if(r.x > settings.width){
+                    animals[ref].x = settings.width
+                    animals[ref].vx = 0;
+                }
+                if(r.x < 0){
+                    animals[ref].x = 0
+                    animals[ref].vx = 0;
+                }
+                if(r.y > settings.height){
+                    animals[ref].y = settings.height
+                    animals[ref].vy = 0;
+                }
+                if(r.y < 0){
+                    animals[ref].y = 0
+                    animals[ref].vy = 0;
+                }
+                return;
+            }
+
+            if(!passable(r.x,r.y,Math.round(animals[ref].z))){
+                animals[ref].z = Math.round(animals[ref].z)-1;
+                animals[ref].vz = 0;
+                return;
+            }
+
+            if(animals[ref].vz == 0){
+                animals[ref].state = Math.round(Math.random());
+            }else if(animals[ref].vz > 0){
+                animals[ref].state = 3;
+            }else if(animals[ref].vz < 0){
+                animals[ref].state = 2;
+            }
+
+            
+            
+            
+
+            if(Math.abs(animals[ref].vx) <= airFriction){
+                animals[ref].vx = airFriction
+            }
+            if(Math.abs(animals[ref].vy) <= airFriction){
+                animals[ref].vy = airFriction;
+            }
+            
+            if(!passable(r.x,r.y,r.z+1)){
+                animals[ref].z = r.z;
+                animals[ref].vz = 0;
+            }else{
+                if(animals[ref].vz < 1){
+                    animals[ref].vz += 0.1
+                }
+            }
+
+
+            if(animals[ref].hunger < 50){
+                var berry = findNearest(r.x,r.y,r.z,30,"bush",1);
+                if(berry != null){
+                    if(dist(r.x,r.y,r.z,berry.x,berry.y,berry.z) > 10 && animals[ref].cooldown < 0){
+                        if(!passable(r.x,r.y,r.z+1)){
+                            animals[ref].cooldown = 10;
+                            animals[ref].vz -= 0.5
+                            animals[ref].z -= 1
+                            if(berry.x < r.x){
+                                animals[ref].vx += -0.3
+                            }
+                            if(berry.x > r.x){
+                                animals[ref].vx += 0.3
+                            }
+                            if(berry.y < r.y){
+                                animals[ref].vy += -0.3
+                            }
+                            if(berry.y > r.y){
+                                animals[ref].vy += 0.3
+                            }
+                        }
+                    }else{
+                        if(dist(r.x,r.y,r.z,berry.x,berry.y,berry.z) < 1){
+                            map[berry.x][berry.y][berry.z].state = 0;
+                            animals[ref].hunger = 100
+                        }else{
+                            if(Math.abs(animals[ref].vx) < 0.5){
+                                if(berry.x < r.x){
+                                    animals[ref].vx += -0.1
+                                }
+                                if(berry.x > r.x){
+                                    animals[ref].vx += 0.1
+                                }
+                            }
+                            if(Math.abs(animals[ref].vy) < 0.5){
+                                if(berry.y < r.y){
+                                    animals[ref].vy += -0.1
+                                }
+                                if(berry.y > r.y){
+                                    animals[ref].vy += 0.1
+                                }
+                            }
+                        }
+                        //var path = makePath(r.x,r.y,r.z,berry.x,berry.y,berry.z);
+                        //animals[ref].x += path[0][0];
+                        //animals[ref].y += path[0][1];
+                        //animals[ref].z += path[0][2];
+                    }
+                }
+            }
+
+
+        },
+    }
+}
+
+class animal{
+    constructor(_x,_y,_z){
+        this.x = _x;
+        this.y = _y;
+        this.z = _z;
+        this.vx = 0;
+        this.vy = 0;
+        this.vz = 0;
+        this.hunger = 100;
+        this.cooldown = 0;
+        this.type = null;
+        this.state = 0;
+    }
+
+    draw(darkness){
+        var img = document.getElementById(animalTypes[this.type].texture);
+        if(this.state != 0){
+            img = document.getElementById(animalTypes[this.type].texture + this.state);
+        }
+        
+        ctx.drawImage(img,((this.x)*settings.tileSize)+camerax,((this.y)*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
+        /*
+        for(var i = 0; i < darkness; i++){
+            img = document.getElementById("dark-astronaut");
+            ctx.drawImage(img,((((this.x*(this.progress/this.speed))+(this.dx*(1-(this.progress/this.speed)))))*settings.tileSize)+camerax,((((this.y*(this.progress/this.speed))+(this.dy*(1-(this.progress/this.speed)))))*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
+        }*/
+    }
+}
 
 class tile{
     constructor(_x,_y,_z){
@@ -769,6 +980,19 @@ function drawAll(){
                 astronauts[i].draw((astronauts[i].z-cameraDepth));
         }
     }
+
+    for(var i = 0; i < animals.length; i++){
+        if(animals[i].z >= cameraDepth){
+            var hide = false;
+            for(var j = Math.round(animals[i].z); j >= cameraDepth; j--){
+                if(map[Math.round(animals[i].x)][Math.round(animals[i].y)][j].type != null && tileTypes[map[Math.round(animals[i].x)][Math.round(animals[i].y)][j].type].stopDraw){
+                    hide = true;
+                }
+            }
+            if(!hide)
+                animals[i].draw((animals[i].z-cameraDepth));
+        }
+    }
 }
 
 class job{
@@ -805,10 +1029,14 @@ function updateAll(){
     for(var i = 0; i < astronauts.length; i++){
         astronauts[i].update();
     }
+    for(var i = 0; i < animals.length; i++){
+        animalTypes[animals[i].type].update(i);
+    }
 }
 
 var map = generateMap(settings.width,settings.height,settings.depth)
 var astronauts = [];
+var animals = [];
 
 
 
@@ -913,6 +1141,12 @@ document.addEventListener("keyup", (event) => {
 
 for(var i = 0; i < 10; i++){
     astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
+}
+
+for(var i = 0; i < 10; i++){
+    var temp = new animal(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10);
+    temp.type = "fruitBird";
+    animals.push(temp);
 }
 
 setInterval(drawAll,50);
