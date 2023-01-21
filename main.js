@@ -531,6 +531,11 @@ var animalTypes = {
             animals[ref].vx = Math.round(animals[ref].vx*100)/100;
             animals[ref].vy = Math.round(animals[ref].vy*100)/100;
             animals[ref].vz = Math.round(animals[ref].vz*100)/100;
+            if(animals[ref].vx > 0.05){
+                animals[ref].facing = 0;
+            }else if(animals[ref].vx < -0.05){
+                animals[ref].facing = 1;
+            }
             var airFriction = 0.05;
             if(animals[ref].vx > 0){
                 animals[ref].vx -= airFriction
@@ -669,6 +674,7 @@ class animal{
         this.vx = 0;
         this.vy = 0;
         this.vz = 0;
+        this.facing = 0;
         this.hunger = 100;
         this.cooldown = 0;
         this.type = null;
@@ -681,6 +687,12 @@ class animal{
         if(this.state != 0){
             img = document.getElementById(animalTypes[this.type].texture + this.state);
         }
+
+        if (this.facing == 1) {
+            //ctx.translate(((this.x)*settings.tileSize)+camerax + c.width/2, ((this.y)*settings.tileSize)+cameray + c.height/2);
+            //ctx.scale(-1, 1);
+            //ctx.translate(-(((this.x)*settings.tileSize)+camerax + c.width/2), -(((this.y)*settings.tileSize)+cameray + c.height/2));
+          }
         
         ctx.drawImage(img,((this.x)*settings.tileSize)+camerax,((this.y)*settings.tileSize)+cameray,settings.tileSize*s,settings.tileSize*s);
         /*
@@ -1141,11 +1153,11 @@ document.addEventListener("keyup", (event) => {
 
 });
 
-for(var i = 0; i < 10; i++){
+for(var i = 0; i < 5; i++){
     astronauts.push(new astronaut(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10));
 }
 
-for(var i = 0; i < 10; i++){
+for(var i = 0; i < 50; i++){
     var temp = new animal(Math.round(Math.random()*(settings.width-2))+1,Math.round(Math.random()*(settings.height-2))+1,settings.groundLevel-10);
     temp.type = "fruitBird";
     animals.push(temp);
