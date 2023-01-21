@@ -630,7 +630,7 @@ var animalTypes = {
                             map[berry.x][berry.y][berry.z].state = 0;
                             animals[ref].hunger = 100
                         }else{
-                            if(Math.abs(animals[ref].vx) < 0.5){
+                            if(Math.abs(animals[ref].vx) < 0.2){
                                 if(berry.x < r.x){
                                     animals[ref].vx += -0.1
                                 }
@@ -638,7 +638,7 @@ var animalTypes = {
                                     animals[ref].vx += 0.1
                                 }
                             }
-                            if(Math.abs(animals[ref].vy) < 0.5){
+                            if(Math.abs(animals[ref].vy) < 0.2){
                                 if(berry.y < r.y){
                                     animals[ref].vy += -0.1
                                 }
