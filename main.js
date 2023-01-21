@@ -6,7 +6,7 @@ var settings = {
     tileSize:16,
     smoothness:6,
     variation:10,
-    offset:0,
+    offset:-1,
     caveCount:10,
     meteors:3,
     nitrogenDeposits:10
@@ -523,6 +523,7 @@ function findNearest(_x,_y,_z,range,type,state){
 var animalTypes = {
     fruitBird:{
         texture: "fruitBird",
+        size:0.5,
         update:function(ref){
             animals[ref].hunger--;
             animals[ref].cooldown--;
@@ -577,9 +578,9 @@ var animalTypes = {
 
             if(animals[ref].vz == 0){
                 animals[ref].state = Math.round(Math.random());
-            }else if(animals[ref].vz > 0){
+            }else if(animals[ref].vz > 0.1){
                 animals[ref].state = 3;
-            }else if(animals[ref].vz < 0){
+            }else if(animals[ref].vz < -0.1){
                 animals[ref].state = 2;
             }
 
@@ -594,7 +595,7 @@ var animalTypes = {
                 animals[ref].vy = airFriction;
             }
             
-            if(!passable(r.x,r.y,r.z+1)){
+            if(!passable(r.x,r.y,r.z+1) && animals[ref].vz > 0){
                 animals[ref].z = r.z;
                 animals[ref].vz = 0;
             }else{
@@ -676,11 +677,12 @@ class animal{
 
     draw(darkness){
         var img = document.getElementById(animalTypes[this.type].texture);
+        var s = animalTypes[this.type].size;
         if(this.state != 0){
             img = document.getElementById(animalTypes[this.type].texture + this.state);
         }
         
-        ctx.drawImage(img,((this.x)*settings.tileSize)+camerax,((this.y)*settings.tileSize)+cameray,settings.tileSize,settings.tileSize);
+        ctx.drawImage(img,((this.x)*settings.tileSize)+camerax,((this.y)*settings.tileSize)+cameray,settings.tileSize*s,settings.tileSize*s);
         /*
         for(var i = 0; i < darkness; i++){
             img = document.getElementById("dark-astronaut");
