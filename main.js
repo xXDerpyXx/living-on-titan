@@ -552,6 +552,20 @@ var animalTypes = {
             animals[ref].x += animals[ref].vx;
             animals[ref].y += animals[ref].vy;
             animals[ref].z += animals[ref].vz;
+
+            if(animals[ref].x < 0){
+                animals[ref].x = 0;
+            }
+            if(animals[ref].x > settings.width-1){
+                animals[ref].x = settings.width-1;
+            }
+
+            if(animals[ref].y < 0){
+                animals[ref].y = 0;
+            }
+            if(animals[ref].y > settings.height-1){
+                animals[ref].y = settings.height-1;
+            }
             
             var r = {x:Math.floor(animals[ref].x),y:Math.floor(animals[ref].y),z:Math.floor(animals[ref].z)}
 
@@ -617,7 +631,6 @@ var animalTypes = {
                         if(!passable(r.x,r.y,r.z+1)){
                             animals[ref].cooldown = 10;
                             animals[ref].vz -= 0.5
-                            animals[ref].z -= 1
                             if(berry.x < r.x){
                                 animals[ref].vx += -0.3
                             }
@@ -657,6 +670,46 @@ var animalTypes = {
                         //animals[ref].x += path[0][0];
                         //animals[ref].y += path[0][1];
                         //animals[ref].z += path[0][2];
+                    }
+                }else{
+                    var rand = Math.random();
+                    if(!passable(r.x,r.y,r.z+1)){
+                        if(Math.abs(animals[ref].vx) < 0.2){
+                            if(rand < 0.25){
+                                animals[ref].vx += -0.1
+                            }
+                            if(rand < 0.5){
+                                animals[ref].vx += 0.1
+                            }
+                        }
+                        if(Math.abs(animals[ref].vy) < 0.2){
+                            if(rand >= 0.5 && r < 0.75){
+                                animals[ref].vy += -0.1
+                            }
+                            if(rand > 0.75){
+                                animals[ref].vy += 0.1
+                            }
+                        }
+                    }
+                }
+            }else{
+                var rand = Math.random();
+                if(!passable(r.x,r.y,r.z+1)){
+                    if(Math.abs(animals[ref].vx) < 0.2){
+                        if(rand < 0.25){
+                            animals[ref].vx += -0.1
+                        }
+                        if(rand < 0.5){
+                            animals[ref].vx += 0.1
+                        }
+                    }
+                    if(Math.abs(animals[ref].vy) < 0.2){
+                        if(rand >= 0.5 && r < 0.75){
+                            animals[ref].vy += -0.1
+                        }
+                        if(rand > 0.75){
+                            animals[ref].vy += 0.1
+                        }
                     }
                 }
             }
